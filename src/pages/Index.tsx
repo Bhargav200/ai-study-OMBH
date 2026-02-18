@@ -1,14 +1,35 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import AnnouncementBar from "@/components/landing/AnnouncementBar";
+import Navbar from "@/components/landing/Navbar";
+import HeroSection from "@/components/landing/HeroSection";
+import TrustedBy from "@/components/landing/TrustedBy";
+import FeaturesGrid from "@/components/landing/FeaturesGrid";
+import StudyLoop from "@/components/landing/StudyLoop";
+import AITutorSection from "@/components/landing/AITutorSection";
+import GamificationSection from "@/components/landing/GamificationSection";
+import ProgressSection from "@/components/landing/ProgressSection";
+import DevSection from "@/components/landing/DevSection";
+import ExpansionSection from "@/components/landing/ExpansionSection";
+import Testimonials from "@/components/landing/Testimonials";
+import FinalCTA from "@/components/landing/FinalCTA";
+import Footer from "@/components/landing/Footer";
 
-const Index = () => {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
-    </div>
-  );
-};
+const Index = () => (
+  <div className="min-h-screen">
+    <AnnouncementBar />
+    <Navbar />
+    <HeroSection />
+    <TrustedBy />
+    <FeaturesGrid />
+    <StudyLoop />
+    <AITutorSection />
+    <GamificationSection />
+    <ProgressSection />
+    <DevSection />
+    <ExpansionSection />
+    <Testimonials />
+    <FinalCTA />
+    <Footer />
+  </div>
+);
 
 export default Index;
