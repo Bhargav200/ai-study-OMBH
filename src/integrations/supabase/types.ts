@@ -158,6 +158,74 @@ export type Database = {
           },
         ]
       }
+      material_chunks: {
+        Row: {
+          chunk_index: number
+          chunk_text: string
+          created_at: string
+          id: string
+          material_id: string
+        }
+        Insert: {
+          chunk_index?: number
+          chunk_text: string
+          created_at?: string
+          id?: string
+          material_id: string
+        }
+        Update: {
+          chunk_index?: number
+          chunk_text?: string
+          created_at?: string
+          id?: string
+          material_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "material_chunks_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "materials"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      materials: {
+        Row: {
+          content_type: string | null
+          extracted_text: string | null
+          file_name: string
+          file_size: number | null
+          id: string
+          processing_status: string
+          storage_path: string
+          uploaded_at: string
+          user_id: string
+        }
+        Insert: {
+          content_type?: string | null
+          extracted_text?: string | null
+          file_name: string
+          file_size?: number | null
+          id?: string
+          processing_status?: string
+          storage_path: string
+          uploaded_at?: string
+          user_id: string
+        }
+        Update: {
+          content_type?: string | null
+          extracted_text?: string | null
+          file_name?: string
+          file_size?: number | null
+          id?: string
+          processing_status?: string
+          storage_path?: string
+          uploaded_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
