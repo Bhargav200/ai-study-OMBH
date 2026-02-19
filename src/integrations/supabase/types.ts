@@ -14,6 +14,109 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_usage_logs: {
+        Row: {
+          completion_tokens: number | null
+          created_at: string
+          estimated_cost: number | null
+          feature_type: string
+          id: string
+          model_name: string | null
+          prompt_tokens: number | null
+          request_status: string | null
+          total_tokens: number | null
+          user_id: string
+        }
+        Insert: {
+          completion_tokens?: number | null
+          created_at?: string
+          estimated_cost?: number | null
+          feature_type: string
+          id?: string
+          model_name?: string | null
+          prompt_tokens?: number | null
+          request_status?: string | null
+          total_tokens?: number | null
+          user_id: string
+        }
+        Update: {
+          completion_tokens?: number | null
+          created_at?: string
+          estimated_cost?: number | null
+          feature_type?: string
+          id?: string
+          model_name?: string | null
+          prompt_tokens?: number | null
+          request_status?: string | null
+          total_tokens?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      doubt_messages: {
+        Row: {
+          created_at: string
+          doubt_session_id: string
+          id: string
+          message_text: string
+          role: string
+        }
+        Insert: {
+          created_at?: string
+          doubt_session_id: string
+          id?: string
+          message_text: string
+          role: string
+        }
+        Update: {
+          created_at?: string
+          doubt_session_id?: string
+          id?: string
+          message_text?: string
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "doubt_messages_doubt_session_id_fkey"
+            columns: ["doubt_session_id"]
+            isOneToOne: false
+            referencedRelation: "doubt_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      doubt_sessions: {
+        Row: {
+          created_at: string
+          id: string
+          question_preview: string
+          topic_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          question_preview: string
+          topic_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          question_preview?: string
+          topic_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "doubt_sessions_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lessons: {
         Row: {
           content: string
