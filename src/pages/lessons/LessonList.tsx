@@ -1,27 +1,74 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { BookOpen, ChevronRight, Search } from "lucide-react";
+import { BookOpen, ChevronRight, Search, Calculator, Atom, FlaskConical, Leaf } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
-const subjects = ["All", "Mathematics", "Physics", "Chemistry", "Biology"];
-
-const lessons = [
-  { id: "1", title: "Quadratic Equations", subject: "Mathematics", lessons: 12, completed: 8, pct: 65 },
-  { id: "2", title: "Newton's Laws of Motion", subject: "Physics", lessons: 8, completed: 3, pct: 40 },
-  { id: "3", title: "Cell Structure & Function", subject: "Biology", lessons: 10, completed: 8, pct: 80 },
-  { id: "4", title: "Chemical Bonding", subject: "Chemistry", lessons: 9, completed: 2, pct: 22 },
-  { id: "5", title: "Trigonometry", subject: "Mathematics", lessons: 14, completed: 14, pct: 100 },
-  { id: "6", title: "Thermodynamics", subject: "Physics", lessons: 11, completed: 0, pct: 0 },
-  { id: "7", title: "Organic Chemistry", subject: "Chemistry", lessons: 15, completed: 4, pct: 27 },
-  { id: "8", title: "Genetics", subject: "Biology", lessons: 8, completed: 6, pct: 75 },
-];
+const iconMap: Record<string, React.ReactNode> = {
+  calculator: <Calculator className="h-5 w-5 text-navy" />,
+  atom: <Atom className="h-5 w-5 text-navy" />,
+  "flask-conical": <FlaskConical className="h-5 w-5 text-navy" />,
+  leaf: <Leaf className="h-5 w-5 text-navy" />,
+};
 
 const LessonList = () => {
+  const { user } = useAuth();
   const [filter, setFilter] = useState("All");
   const [search, setSearch] = useState("");
 
-  const filtered = lessons.filter(
-    (l) => (filter === "All" || l.subject === filter) && l.title.toLowerCase().includes(search.toLowerCase())
+  const { data: subjects } = useQuery({
+    queryKey: ["subjects"],
+    queryFn: async () => {
+      const { data } = await supabase.from("subjects").select("*").order("name");
+      return data ?? [];
+    },
+  });
+
+  const { data: topics, isLoading } = useQuery({
+    queryKey: ["topics-with-progress", user?.id],
+    queryFn: async () => {
+      const { data: topicsData } = await supabase
+        .from("topics")
+        .select("*, subjects(name, icon)")
+        .order("sort_order");
+
+      if (!topicsData) return [];
+
+      // Get all lessons grouped by topic
+      const { data: lessons } = await supabase.from("lessons").select("id, topic_id");
+
+      // Get user progress
+      const { data: progress } = user
+        ? await supabase.from("user_lesson_progress").select("lesson_id, completed").eq("user_id", user.id)
+        : { data: [] };
+
+      const completedSet = new Set((progress ?? []).filter((p) => p.completed).map((p) => p.lesson_id));
+
+      return topicsData.map((t) => {
+        const topicLessons = (lessons ?? []).filter((l) => l.topic_id === t.id);
+        const completedCount = topicLessons.filter((l) => completedSet.has(l.id)).length;
+        const total = topicLessons.length || t.lesson_count;
+        return {
+          ...t,
+          subjectName: (t.subjects as any)?.name ?? "",
+          subjectIcon: (t.subjects as any)?.icon ?? "book-open",
+          totalLessons: total,
+          completedLessons: completedCount,
+          pct: total > 0 ? Math.round((completedCount / total) * 100) : 0,
+        };
+      });
+    },
+  });
+
+  const subjectNames = ["All", ...(subjects?.map((s) => s.name) ?? [])];
+
+  const filtered = (topics ?? []).filter(
+    (t) =>
+      (filter === "All" || t.subjectName === filter) &&
+      t.title.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -37,7 +84,7 @@ const LessonList = () => {
           <Input placeholder="Search topics..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10 h-10" />
         </div>
         <div className="flex gap-2 overflow-x-auto">
-          {subjects.map((s) => (
+          {subjectNames.map((s) => (
             <button
               key={s}
               onClick={() => setFilter(s)}
@@ -52,26 +99,39 @@ const LessonList = () => {
       </div>
 
       <div className="space-y-3">
-        {filtered.map((l) => (
-          <Link
-            key={l.id}
-            to={`/lessons/${l.id}`}
-            className="flex items-center gap-4 bg-card border border-border rounded-xl p-5 hover:border-accent/50 transition-colors group"
-          >
-            <div className="h-10 w-10 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0">
-              <BookOpen className="h-5 w-5 text-navy" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-sm font-semibold text-foreground">{l.title}</div>
-              <div className="text-xs text-muted-foreground mt-0.5">{l.subject} · {l.completed}/{l.lessons} lessons</div>
-              <div className="h-1.5 bg-muted rounded-full overflow-hidden mt-2 w-full max-w-xs">
-                <div className="h-full bg-accent rounded-full transition-all" style={{ width: `${l.pct}%` }} />
+        {isLoading
+          ? Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-4 bg-card border border-border rounded-xl p-5">
+                <Skeleton className="h-10 w-10 rounded-lg" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-4 w-48" />
+                  <Skeleton className="h-3 w-32" />
+                  <Skeleton className="h-1.5 w-full max-w-xs" />
+                </div>
               </div>
-            </div>
-            <span className="text-xs font-bold text-accent">{l.pct}%</span>
-            <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-          </Link>
-        ))}
+            ))
+          : filtered.map((t) => (
+              <Link
+                key={t.id}
+                to={`/lessons/${t.id}`}
+                className="flex items-center gap-4 bg-card border border-border rounded-xl p-5 hover:border-accent/50 transition-colors group"
+              >
+                <div className="h-10 w-10 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0">
+                  {iconMap[t.subjectIcon] ?? <BookOpen className="h-5 w-5 text-navy" />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-semibold text-foreground">{t.title}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">
+                    {t.subjectName} · {t.completedLessons}/{t.totalLessons} lessons
+                  </div>
+                  <div className="h-1.5 bg-muted rounded-full overflow-hidden mt-2 w-full max-w-xs">
+                    <div className="h-full bg-accent rounded-full transition-all" style={{ width: `${t.pct}%` }} />
+                  </div>
+                </div>
+                <span className="text-xs font-bold text-accent">{t.pct}%</span>
+                <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+              </Link>
+            ))}
       </div>
     </div>
   );
