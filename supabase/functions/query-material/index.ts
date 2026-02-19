@@ -59,7 +59,15 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `You are an AI tutor. The student has uploaded a document titled "${material.file_name}". Use the following document content to answer their question accurately. If the answer isn't in the document, say so.\n\nDocument content:\n${context}`,
+            content: `You are an AI tutor. The student has uploaded a document titled "${material.file_name}". Use the following document content to answer their question accurately. If the answer isn't in the document, say so.
+
+When relevant, proactively recommend YouTube playlists or channels that could help the student learn the topic better. Format YouTube recommendations like:
+📺 **Recommended YouTube Resources:**
+- [Channel/Playlist Name](https://youtube.com/...) — Brief description of why it's helpful
+
+Only suggest real, well-known educational channels (e.g., Khan Academy, 3Blue1Brown, Organic Chemistry Tutor, CrashCourse, Professor Leonard, MIT OpenCourseWare, etc.) that match the subject matter.
+
+Document content:\n${context}`,
           },
           { role: "user", content: question },
         ],

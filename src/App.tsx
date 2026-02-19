@@ -63,10 +63,9 @@ const App = () => (
               <Route path="/quiz" element={<TopicSelection />} />
               <Route path="/quiz/:id" element={<QuizPage />} />
               <Route path="/quiz/:id/results" element={<QuizResults />} />
-              <Route path="/timer" element={<StudyTimerPage />} />
               <Route path="/timer/summary" element={<SessionSummary />} />
               <Route path="/materials" element={<MaterialUpload />} />
-              <Route path="/materials/learn" element={<AILearning />} />
+              <Route path="/materials/learn/:id" element={<AILearning />} />
               <Route path="/progress" element={<ProgressDashboard />} />
               <Route path="/leaderboard" element={<Leaderboard />} />
               <Route path="/friends" element={<Friends />} />

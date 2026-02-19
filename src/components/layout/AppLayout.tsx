@@ -1,12 +1,12 @@
 import { Link, Outlet, useLocation } from "react-router-dom";
-import { Brain, LayoutDashboard, BookOpen, MessageCircleQuestion, Timer, Trophy, BarChart3, Upload, Settings, User, Flame, Gamepad2 } from "lucide-react";
+import { Brain, LayoutDashboard, BookOpen, MessageCircleQuestion, Trophy, BarChart3, Upload, Settings, User, Flame, Gamepad2 } from "lucide-react";
 
 const sidebarLinks = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { to: "/lessons", icon: BookOpen, label: "Lessons" },
   { to: "/doubts", icon: MessageCircleQuestion, label: "Ask Doubt" },
   { to: "/quiz", icon: Gamepad2, label: "Practice Quiz" },
-  { to: "/timer", icon: Timer, label: "Study Timer" },
+  
   { to: "/materials", icon: Upload, label: "Materials" },
   { to: "/progress", icon: BarChart3, label: "Progress" },
   { to: "/leaderboard", icon: Trophy, label: "Leaderboard" },
@@ -64,7 +64,7 @@ const AppLayout = () => {
 
       {/* Mobile bottom nav */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-card border-t border-border flex">
-        {[sidebarLinks[0], sidebarLinks[1], sidebarLinks[3], sidebarLinks[4], sidebarLinks[6]].map((link) => {
+        {[sidebarLinks[0], sidebarLinks[1], sidebarLinks[2], sidebarLinks[3], sidebarLinks[5]].map((link) => {
           const active = pathname === link.to || pathname.startsWith(link.to + "/");
           return (
             <Link
