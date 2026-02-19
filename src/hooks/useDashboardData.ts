@@ -61,6 +61,70 @@ export const useDashboardData = () => {
     enabled: !!user,
   });
 
+  const { data: avgScore } = useQuery({
+    queryKey: ["avgScore", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("quiz_attempts")
+        .select("score, total_questions")
+        .eq("user_id", user!.id);
+      if (error) throw error;
+      if (!data || data.length === 0) return null;
+      const avg = data.reduce((s, q) => s + (q.total_questions > 0 ? q.score / q.total_questions : 0), 0) / data.length;
+      return Math.round(avg * 100);
+    },
+    enabled: !!user,
+  });
+
+  const { data: continueLearning } = useQuery({
+    queryKey: ["continueLearning", user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      // Get user's lesson progress
+      const { data: progress } = await supabase
+        .from("user_lesson_progress")
+        .select("lesson_id, completed")
+        .eq("user_id", user.id);
+
+      const completedSet = new Set((progress ?? []).filter((p) => p.completed).map((p) => p.lesson_id));
+
+      // Get all topics with their lessons
+      const { data: topics } = await supabase
+        .from("topics")
+        .select("id, title, subject_id, subjects(name)")
+        .order("sort_order");
+
+      const { data: lessons } = await supabase
+        .from("lessons")
+        .select("id, topic_id")
+        .order("sort_order");
+
+      if (!topics || !lessons) return [];
+
+      // Find topics that are in-progress (some but not all lessons done)
+      const inProgress = topics
+        .map((t) => {
+          const topicLessons = lessons.filter((l) => l.topic_id === t.id);
+          const done = topicLessons.filter((l) => completedSet.has(l.id)).length;
+          const total = topicLessons.length;
+          if (total === 0 || done === 0 || done === total) return null;
+          return {
+            id: t.id,
+            title: t.title,
+            subject: (t.subjects as any)?.name ?? "",
+            done,
+            total,
+            pct: Math.round((done / total) * 100),
+          };
+        })
+        .filter(Boolean)
+        .slice(0, 3);
+
+      return inProgress;
+    },
+    enabled: !!user,
+  });
+
   const greeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return "Good morning";
@@ -73,6 +137,8 @@ export const useDashboardData = () => {
     streak,
     totalXp: totalXp ?? 0,
     studyTime: studyTime ?? "0h",
+    avgScore: avgScore ?? null,
+    continueLearning: continueLearning ?? [],
     greeting: greeting(),
   };
 };
