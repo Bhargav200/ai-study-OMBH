@@ -1,79 +1,175 @@
-import { Link } from "react-router-dom";
+import { useEffect, useState, useRef } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Sparkles, Lightbulb, Gamepad2 } from "lucide-react";
+import { ArrowLeft, Sparkles, Gamepad2, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
-const AISolution = () => (
-  <div className="p-6 md:p-8 max-w-3xl mx-auto space-y-6">
-    <Link to="/doubts" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
-      <ArrowLeft className="h-4 w-4" /> Ask another doubt
-    </Link>
+const SOLVE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/solve-doubt`;
 
-    {/* Original question */}
-    <div className="bg-card border border-border rounded-xl p-5">
-      <div className="text-xs text-muted-foreground mb-2">Your Question</div>
-      <p className="text-sm text-foreground font-medium">How do I solve integrals by substitution?</p>
-    </div>
+const AISolution = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const question = (location.state as any)?.question as string | undefined;
+  const [answer, setAnswer] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const streamed = useRef(false);
 
-    {/* AI solution */}
-    <div className="bg-card border border-border rounded-xl p-6 space-y-5">
-      <div className="flex items-center gap-2 pb-3 border-b border-border">
-        <Sparkles className="h-5 w-5 text-accent" />
-        <span className="font-semibold text-sm text-foreground">Step-by-Step Solution</span>
-      </div>
+  useEffect(() => {
+    if (!question) {
+      navigate("/doubts", { replace: true });
+      return;
+    }
+    if (streamed.current) return;
+    streamed.current = true;
 
-      <div className="space-y-4">
-        {[
-          { step: 1, title: "Identify the substitution", content: "Look for a composite function f(g(x)). Choose u = g(x), the inner function." },
-          { step: 2, title: "Compute du", content: "Differentiate u with respect to x: du = g'(x)dx. Express dx in terms of du." },
-          { step: 3, title: "Substitute", content: "Replace all x-terms in the integral with u-terms. The integral should now only contain u." },
-          { step: 4, title: "Integrate", content: "Evaluate the simpler integral in terms of u." },
-          { step: 5, title: "Back-substitute", content: "Replace u with the original expression g(x) to get the final answer." },
-        ].map((s) => (
-          <div key={s.step} className="flex gap-4">
-            <div className="h-7 w-7 rounded-full bg-navy text-highlight flex items-center justify-center flex-shrink-0 text-xs font-bold">
-              {s.step}
-            </div>
-            <div>
-              <div className="text-sm font-semibold text-foreground">{s.title}</div>
-              <div className="text-sm text-muted-foreground mt-0.5">{s.content}</div>
-            </div>
+    const run = async () => {
+      try {
+        const resp = await fetch(SOLVE_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({ question }),
+        });
+
+        if (!resp.ok) {
+          const err = await resp.json().catch(() => ({ error: "AI service error" }));
+          throw new Error(err.error || `Error ${resp.status}`);
+        }
+
+        if (!resp.body) throw new Error("No response stream");
+
+        const reader = resp.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        let full = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+
+          let nl: number;
+          while ((nl = buffer.indexOf("\n")) !== -1) {
+            let line = buffer.slice(0, nl);
+            buffer = buffer.slice(nl + 1);
+            if (line.endsWith("\r")) line = line.slice(0, -1);
+            if (!line.startsWith("data: ")) continue;
+            const json = line.slice(6).trim();
+            if (json === "[DONE]") break;
+            try {
+              const parsed = JSON.parse(json);
+              const content = parsed.choices?.[0]?.delta?.content;
+              if (content) {
+                full += content;
+                setAnswer(full);
+              }
+            } catch {
+              buffer = line + "\n" + buffer;
+              break;
+            }
+          }
+        }
+
+        // flush
+        if (buffer.trim()) {
+          for (let raw of buffer.split("\n")) {
+            if (!raw.startsWith("data: ")) continue;
+            const json = raw.slice(6).trim();
+            if (json === "[DONE]") continue;
+            try {
+              const p = JSON.parse(json);
+              const c = p.choices?.[0]?.delta?.content;
+              if (c) { full += c; setAnswer(full); }
+            } catch {}
+          }
+        }
+      } catch (e: any) {
+        console.error(e);
+        setError(e.message);
+        toast.error(e.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    run();
+  }, [question, navigate]);
+
+  // Simple markdown renderer
+  const renderMarkdown = (md: string) => {
+    return md.split("\n").map((line, i) => {
+      if (line.startsWith("## 💡")) return <h3 key={i} className="text-base font-semibold text-foreground mt-6 flex items-center gap-2">💡 {line.slice(5).trim()}</h3>;
+      if (line.startsWith("## ")) return <h3 key={i} className="text-lg font-semibold text-foreground mt-6">{line.slice(3)}</h3>;
+      if (line.startsWith("### ")) return <h4 key={i} className="text-base font-semibold text-foreground mt-4">{line.slice(4)}</h4>;
+      if (line.startsWith("```")) return null;
+      if (line.trim() === "") return <br key={i} />;
+      if (/^\d+\.\s/.test(line)) {
+        const num = line.match(/^(\d+)\./)?.[1];
+        const rest = line.replace(/^\d+\.\s*/, "");
+        return (
+          <div key={i} className="flex gap-3 mt-2">
+            <div className="h-6 w-6 rounded-full bg-navy text-highlight flex items-center justify-center flex-shrink-0 text-xs font-bold">{num}</div>
+            <span className="text-sm text-muted-foreground">{rest}</span>
           </div>
-        ))}
+        );
+      }
+      if (line.startsWith("- ")) return <li key={i} className="text-sm text-muted-foreground ml-4 mt-1">• {line.slice(2)}</li>;
+      // Code-like lines
+      if (/^[A-Za-z].*[=+\-*/]/.test(line.trim()) && line.trim().length < 60) {
+        return <div key={i} className="font-mono text-sm text-accent bg-muted px-3 py-1 rounded mt-1">{line}</div>;
+      }
+      return <p key={i} className="text-sm text-muted-foreground mt-1 leading-relaxed">{line}</p>;
+    });
+  };
+
+  return (
+    <div className="p-6 md:p-8 max-w-3xl mx-auto space-y-6">
+      <Link to="/doubts" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+        <ArrowLeft className="h-4 w-4" /> Ask another doubt
+      </Link>
+
+      {question && (
+        <div className="bg-card border border-border rounded-xl p-5">
+          <div className="text-xs text-muted-foreground mb-2">Your Question</div>
+          <p className="text-sm text-foreground font-medium">{question}</p>
+        </div>
+      )}
+
+      <div className="bg-card border border-border rounded-xl p-6 space-y-4">
+        <div className="flex items-center gap-2 pb-3 border-b border-border">
+          <Sparkles className="h-5 w-5 text-accent" />
+          <span className="font-semibold text-sm text-foreground">Step-by-Step Solution</span>
+          {loading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground ml-auto" />}
+        </div>
+
+        {error ? (
+          <p className="text-sm text-destructive">{error}</p>
+        ) : answer ? (
+          <div className="space-y-1">{renderMarkdown(answer)}</div>
+        ) : loading ? (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground py-8 justify-center">
+            <Loader2 className="h-5 w-5 animate-spin" /> Thinking...
+          </div>
+        ) : null}
       </div>
 
-      {/* Example */}
-      <div className="bg-muted rounded-lg p-4 space-y-2">
-        <div className="text-xs font-semibold text-foreground flex items-center gap-2">
-          <Lightbulb className="h-4 w-4 text-accent" /> Example
+      {!loading && !error && (
+        <div className="flex gap-3">
+          <Link to="/doubts" className="flex-1">
+            <Button variant="outline" className="w-full">Ask Another Doubt</Button>
+          </Link>
+          <Link to="/quiz" className="flex-1">
+            <Button className="w-full bg-navy text-highlight hover:bg-navy/90 gap-2">
+              <Gamepad2 className="h-4 w-4" /> Practice This Topic
+            </Button>
+          </Link>
         </div>
-        <div className="font-mono text-sm text-muted-foreground space-y-1">
-          <div>∫ 2x · cos(x²) dx</div>
-          <div className="text-accent">Let u = x², du = 2x dx</div>
-          <div className="text-accent">∫ cos(u) du = sin(u) + C</div>
-          <div className="text-accent font-semibold">= sin(x²) + C</div>
-        </div>
-      </div>
+      )}
     </div>
-
-    {/* Concept explanation */}
-    <div className="bg-secondary/50 border border-accent/10 rounded-xl p-5 space-y-2">
-      <div className="text-sm font-semibold text-foreground">💡 Key Concept</div>
-      <p className="text-sm text-muted-foreground">
-        U-substitution is essentially the reverse of the chain rule. Whenever you see a function and its derivative together in an integral, substitution is likely the right approach.
-      </p>
-    </div>
-
-    <div className="flex gap-3">
-      <Link to="/doubts" className="flex-1">
-        <Button variant="outline" className="w-full">Ask Another Doubt</Button>
-      </Link>
-      <Link to="/quiz" className="flex-1">
-        <Button className="w-full bg-navy text-highlight hover:bg-navy/90 gap-2">
-          <Gamepad2 className="h-4 w-4" /> Practice This Topic
-        </Button>
-      </Link>
-    </div>
-  </div>
-);
+  );
+};
 
 export default AISolution;
