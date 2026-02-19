@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Play, Bot, BarChart3, Trophy, Timer, BookOpen } from "lucide-react";
+import { ArrowRight, Bot, BarChart3, Trophy, Timer } from "lucide-react";
 
 const HeroSection = () => (
   <section className="relative overflow-hidden bg-deep text-deep-foreground">
@@ -29,15 +29,14 @@ const HeroSection = () => (
           <div className="flex flex-wrap gap-4">
             <Button className="bg-highlight text-navy hover:bg-highlight/90 font-semibold text-sm h-12 px-7 rounded-xl gap-2" asChild>
               <Link to="/signup">
-                Start Learning Free
+                Sign Up Free
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
             <Button variant="outline" className="border-interface/40 text-soft hover:text-highlight hover:border-highlight/50 h-12 px-7 rounded-xl gap-2 bg-transparent" asChild>
-              <a href="#features">
-                <Play className="h-4 w-4" />
-                See How It Works
-              </a>
+              <Link to="/login">
+                Log In
+              </Link>
             </Button>
           </div>
 

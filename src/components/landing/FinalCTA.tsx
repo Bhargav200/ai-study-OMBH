@@ -24,12 +24,12 @@ const FinalCTA = () => (
       <div className="flex flex-wrap gap-4 justify-center">
         <Button className="bg-highlight text-navy hover:bg-highlight/90 font-semibold h-12 px-8 rounded-xl text-sm gap-2" asChild>
           <Link to="/signup">
-            Start Free
+            Sign Up Free
             <ArrowRight className="h-4 w-4" />
           </Link>
         </Button>
         <Button variant="outline" className="border-interface/40 text-soft hover:text-highlight hover:border-highlight/40 h-12 px-8 rounded-xl text-sm bg-transparent" asChild>
-          <Link to="/login">Sign In</Link>
+          <Link to="/login">Log In</Link>
         </Button>
       </div>
     </div>

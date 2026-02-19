@@ -76,7 +76,7 @@ const Login = () => {
           </div>
 
           <div>
-            <h2 className="text-2xl font-bold text-foreground tracking-tight">Sign in to your account</h2>
+            <h2 className="text-2xl font-bold text-foreground tracking-tight">Log in to your account</h2>
             <p className="text-muted-foreground mt-2 text-sm">Enter your credentials to continue learning</p>
           </div>
 
@@ -109,13 +109,13 @@ const Login = () => {
               </div>
             </div>
             <Button type="submit" className="w-full h-11 bg-navy text-highlight hover:bg-navy/90 font-semibold gap-2" disabled={isLoading}>
-              {isLoading ? "Signing in..." : "Sign In"} {!isLoading && <ArrowRight className="h-4 w-4" />}
+              {isLoading ? "Logging in..." : "Log In"} {!isLoading && <ArrowRight className="h-4 w-4" />}
             </Button>
           </form>
 
           <p className="text-center text-sm text-muted-foreground">
             Don't have an account?{" "}
-            <Link to="/signup" className="text-accent font-medium hover:underline">Sign up free</Link>
+            <Link to="/signup" className="text-accent font-medium hover:underline">Sign Up Free</Link>
           </p>
         </div>
       </div>
