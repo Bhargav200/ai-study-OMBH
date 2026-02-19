@@ -1,12 +1,21 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Flame, Zap, ArrowRight, BookOpen } from "lucide-react";
 
 const SessionSummary = () => {
   const { state } = useLocation();
+  const navigate = useNavigate();
+
   const duration = state?.duration ?? 0;
+  const xp = state?.xp ?? 0;
+  const streak = state?.streak ?? 0;
   const mins = Math.floor(duration / 60);
-  const xp = mins * 5;
+  const secs = duration % 60;
+
+  if (!state) {
+    navigate("/timer", { replace: true });
+    return null;
+  }
 
   return (
     <div className="p-6 md:p-8 max-w-lg mx-auto space-y-6 flex flex-col items-center justify-center min-h-[70vh]">
@@ -20,9 +29,9 @@ const SessionSummary = () => {
 
       <div className="grid grid-cols-3 gap-4 w-full">
         {[
-          { icon: BookOpen, label: "Duration", value: `${mins}m` },
+          { icon: BookOpen, label: "Duration", value: mins > 0 ? `${mins}m ${secs}s` : `${secs}s` },
           { icon: Zap, label: "XP Earned", value: `+${xp}` },
-          { icon: Flame, label: "Streak", value: "7 days" },
+          { icon: Flame, label: "Streak", value: `${streak} day${streak !== 1 ? "s" : ""}` },
         ].map((s) => (
           <div key={s.label} className="bg-card border border-border rounded-xl p-4 text-center">
             <s.icon className="h-5 w-5 text-accent mx-auto mb-2" />
