@@ -17,7 +17,9 @@ export type Database = {
       lessons: {
         Row: {
           content: string
+          content_type: string | null
           created_at: string
+          estimated_duration_minutes: number | null
           id: string
           sort_order: number
           title: string
@@ -25,7 +27,9 @@ export type Database = {
         }
         Insert: {
           content?: string
+          content_type?: string | null
           created_at?: string
+          estimated_duration_minutes?: number | null
           id?: string
           sort_order?: number
           title: string
@@ -33,7 +37,9 @@ export type Database = {
         }
         Update: {
           content?: string
+          content_type?: string | null
           created_at?: string
+          estimated_duration_minutes?: number | null
           id?: string
           sort_order?: number
           title?: string
@@ -160,6 +166,7 @@ export type Database = {
         Row: {
           color: string | null
           created_at: string
+          description: string | null
           icon: string | null
           id: string
           name: string
@@ -167,6 +174,7 @@ export type Database = {
         Insert: {
           color?: string | null
           created_at?: string
+          description?: string | null
           icon?: string | null
           id?: string
           name: string
@@ -174,6 +182,7 @@ export type Database = {
         Update: {
           color?: string | null
           created_at?: string
+          description?: string | null
           icon?: string | null
           id?: string
           name?: string
@@ -184,6 +193,7 @@ export type Database = {
         Row: {
           created_at: string
           description: string | null
+          difficulty_level: number | null
           id: string
           lesson_count: number
           sort_order: number
@@ -193,6 +203,7 @@ export type Database = {
         Insert: {
           created_at?: string
           description?: string | null
+          difficulty_level?: number | null
           id?: string
           lesson_count?: number
           sort_order?: number
@@ -202,6 +213,7 @@ export type Database = {
         Update: {
           created_at?: string
           description?: string | null
+          difficulty_level?: number | null
           id?: string
           lesson_count?: number
           sort_order?: number
