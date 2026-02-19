@@ -4,11 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Menu, X, Brain } from "lucide-react";
 
 const navLinks = [
-  { label: "Platform", href: "#platform" },
   { label: "Features", href: "#features" },
-  { label: "For Students", href: "#students" },
-  { label: "Pricing", href: "#pricing" },
-  { label: "Resources", href: "#resources" },
+  { label: "How It Works", href: "#how-it-works" },
 ];
 
 const Navbar = () => {
@@ -41,10 +38,10 @@ const Navbar = () => {
         {/* Right */}
         <div className="hidden md:flex items-center gap-3">
           <Button variant="ghost" size="sm" className="text-sm font-medium" asChild>
-            <Link to="/login">Sign In</Link>
+            <Link to="/login">Log In</Link>
           </Button>
           <Button size="sm" className="bg-navy text-highlight hover:bg-navy/90 text-sm font-semibold rounded-lg px-5" asChild>
-            <Link to="/signup">Start Learning Free</Link>
+            <Link to="/signup">Sign Up Free</Link>
           </Button>
         </div>
 
@@ -63,10 +60,10 @@ const Navbar = () => {
           ))}
           <div className="pt-3 border-t border-border space-y-2">
             <Button variant="ghost" className="w-full justify-start text-sm" asChild>
-              <Link to="/login">Sign In</Link>
+              <Link to="/login">Log In</Link>
             </Button>
             <Button className="w-full bg-navy text-highlight text-sm" asChild>
-              <Link to="/signup">Start Learning Free</Link>
+              <Link to="/signup">Sign Up Free</Link>
             </Button>
           </div>
         </div>
