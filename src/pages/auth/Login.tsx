@@ -23,6 +23,7 @@ const Login = () => {
       toast.error(error.message);
       return;
     }
+    // ProtectedRoute will handle redirect to onboarding or dashboard
     navigate("/dashboard");
   };
 

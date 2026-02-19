@@ -1,13 +1,13 @@
 import { Link, Outlet, useLocation } from "react-router-dom";
-import { Brain, LayoutDashboard, BookOpen, MessageCircleQuestion, Trophy, BarChart3, Upload, Settings, User, Flame, Gamepad2 } from "lucide-react";
+import { Brain, LayoutDashboard, BookOpen, MessageCircleQuestion, Trophy, BarChart3, Upload, Settings, User, Flame, Gamepad2, Bot } from "lucide-react";
 
 const sidebarLinks = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { to: "/lessons", icon: BookOpen, label: "Lessons" },
   { to: "/doubts", icon: MessageCircleQuestion, label: "Ask Doubt" },
   { to: "/quiz", icon: Gamepad2, label: "Practice Quiz" },
-  
   { to: "/materials", icon: Upload, label: "Materials" },
+  { to: "/materials/tutor", icon: Bot, label: "AI Tutor" },
   { to: "/progress", icon: BarChart3, label: "Progress" },
   { to: "/leaderboard", icon: Trophy, label: "Leaderboard" },
   { to: "/achievements", icon: Flame, label: "Achievements" },

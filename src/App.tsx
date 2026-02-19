@@ -26,6 +26,7 @@ import StudyTimerPage from "./pages/timer/StudyTimer";
 import SessionSummary from "./pages/timer/SessionSummary";
 import MaterialUpload from "./pages/materials/MaterialUpload";
 import AILearning from "./pages/materials/AILearning";
+import AITutor from "./pages/materials/AITutor";
 import ProgressDashboard from "./pages/progress/ProgressDashboard";
 import Leaderboard from "./pages/social/Leaderboard";
 import Friends from "./pages/social/Friends";
@@ -66,6 +67,7 @@ const App = () => (
               <Route path="/timer/summary" element={<SessionSummary />} />
               <Route path="/materials" element={<MaterialUpload />} />
               <Route path="/materials/learn/:id" element={<AILearning />} />
+              <Route path="/materials/tutor" element={<AITutor />} />
               <Route path="/progress" element={<ProgressDashboard />} />
               <Route path="/leaderboard" element={<Leaderboard />} />
               <Route path="/friends" element={<Friends />} />
