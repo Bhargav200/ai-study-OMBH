@@ -3,12 +3,14 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Sparkles, Gamepad2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 const SOLVE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/solve-doubt`;
 
 const AISolution = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { session } = useAuth();
   const question = (location.state as any)?.question as string | undefined;
   const [answer, setAnswer] = useState("");
   const [loading, setLoading] = useState(true);
@@ -25,12 +27,17 @@ const AISolution = () => {
 
     const run = async () => {
       try {
+        const headers: Record<string, string> = { "Content-Type": "application/json" };
+        // Send user's auth token so edge function can persist
+        if (session?.access_token) {
+          headers["Authorization"] = `Bearer ${session.access_token}`;
+        } else {
+          headers["Authorization"] = `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`;
+        }
+
         const resp = await fetch(SOLVE_URL, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
+          headers,
           body: JSON.stringify({ question }),
         });
 
@@ -96,9 +103,8 @@ const AISolution = () => {
     };
 
     run();
-  }, [question, navigate]);
+  }, [question, navigate, session]);
 
-  // Simple markdown renderer
   const renderMarkdown = (md: string) => {
     return md.split("\n").map((line, i) => {
       if (line.startsWith("## 💡")) return <h3 key={i} className="text-base font-semibold text-foreground mt-6 flex items-center gap-2">💡 {line.slice(5).trim()}</h3>;
@@ -117,7 +123,6 @@ const AISolution = () => {
         );
       }
       if (line.startsWith("- ")) return <li key={i} className="text-sm text-muted-foreground ml-4 mt-1">• {line.slice(2)}</li>;
-      // Code-like lines
       if (/^[A-Za-z].*[=+\-*/]/.test(line.trim()) && line.trim().length < 60) {
         return <div key={i} className="font-mono text-sm text-accent bg-muted px-3 py-1 rounded mt-1">{line}</div>;
       }

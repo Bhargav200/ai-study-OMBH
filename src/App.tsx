@@ -17,6 +17,8 @@ import LessonList from "./pages/lessons/LessonList";
 import LessonViewer from "./pages/lessons/LessonViewer";
 import DoubtInput from "./pages/doubts/DoubtInput";
 import AISolution from "./pages/doubts/AISolution";
+import DoubtHistory from "./pages/doubts/DoubtHistory";
+import DoubtSession from "./pages/doubts/DoubtSession";
 import TopicSelection from "./pages/quiz/TopicSelection";
 import QuizPage from "./pages/quiz/QuizPage";
 import QuizResults from "./pages/quiz/QuizResults";
@@ -56,6 +58,8 @@ const App = () => (
               <Route path="/lessons/:id" element={<LessonViewer />} />
               <Route path="/doubts" element={<DoubtInput />} />
               <Route path="/doubts/solution" element={<AISolution />} />
+              <Route path="/doubts/history" element={<DoubtHistory />} />
+              <Route path="/doubts/session/:id" element={<DoubtSession />} />
               <Route path="/quiz" element={<TopicSelection />} />
               <Route path="/quiz/:id" element={<QuizPage />} />
               <Route path="/quiz/:id/results" element={<QuizResults />} />
