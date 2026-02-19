@@ -4,17 +4,30 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Brain, ArrowRight, GraduationCap } from "lucide-react";
 
+const learnerTypes = ["Individual Learner", "School / Institution"];
 const grades = ["Grade 6", "Grade 7", "Grade 8", "Grade 9", "Grade 10", "Grade 11", "Grade 12", "College"];
 const subjects = ["Mathematics", "Physics", "Chemistry", "Biology", "English", "History", "Computer Science", "Economics"];
 
 const ProfileSetup = () => {
   const navigate = useNavigate();
   const [name, setName] = useState("");
+  const [learnerType, setLearnerType] = useState("");
   const [selectedGrade, setSelectedGrade] = useState("");
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
+  const [showCustomInput, setShowCustomInput] = useState(false);
+  const [customSubject, setCustomSubject] = useState("");
 
   const toggleSubject = (s: string) =>
     setSelectedSubjects((prev) => (prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]));
+
+  const addCustomSubject = () => {
+    const trimmed = customSubject.trim();
+    if (trimmed && !selectedSubjects.includes(trimmed)) {
+      setSelectedSubjects((prev) => [...prev, trimmed]);
+      setCustomSubject("");
+      setShowCustomInput(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -47,6 +60,26 @@ const ProfileSetup = () => {
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">Display Name</label>
               <Input placeholder="What should we call you?" value={name} onChange={(e) => setName(e.target.value)} className="h-11" />
+            </div>
+
+            {/* Learner Type */}
+            <div className="space-y-3">
+              <label className="text-sm font-medium text-foreground">I am a</label>
+              <div className="grid grid-cols-2 gap-2">
+                {learnerTypes.map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => setLearnerType(t)}
+                    className={`px-4 py-3 rounded-lg text-sm font-medium border transition-colors text-left ${
+                      learnerType === t
+                        ? "bg-navy text-highlight border-navy"
+                        : "bg-card border-border text-foreground hover:border-accent/50"
+                    }`}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="space-y-3">
@@ -84,6 +117,54 @@ const ProfileSetup = () => {
                     {s}
                   </button>
                 ))}
+
+                {/* Custom subjects added by user */}
+                {selectedSubjects
+                  .filter((s) => !subjects.includes(s))
+                  .map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => toggleSubject(s)}
+                      className="px-4 py-3 rounded-lg text-sm font-medium border transition-colors text-left bg-navy text-highlight border-navy"
+                    >
+                      {s}
+                    </button>
+                  ))}
+
+                {/* Custom subject input or button */}
+                {showCustomInput ? (
+                  <div className="col-span-2 flex gap-2">
+                    <Input
+                      placeholder="Enter subject or topic…"
+                      value={customSubject}
+                      onChange={(e) => setCustomSubject(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && addCustomSubject()}
+                      className="h-11 flex-1"
+                      autoFocus
+                    />
+                    <Button
+                      onClick={addCustomSubject}
+                      className="h-11 bg-navy text-highlight hover:bg-navy/90"
+                      disabled={!customSubject.trim()}
+                    >
+                      Add
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => { setShowCustomInput(false); setCustomSubject(""); }}
+                      className="h-11"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setShowCustomInput(true)}
+                    className="px-4 py-3 rounded-lg text-sm font-medium border border-dashed border-border text-muted-foreground hover:border-accent/50 hover:text-foreground transition-colors text-left"
+                  >
+                    + Custom Subject
+                  </button>
+                )}
               </div>
             </div>
           </div>
