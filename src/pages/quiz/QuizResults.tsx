@@ -22,7 +22,7 @@ const QuizResults = () => {
   const pct = total > 0 ? Math.round((score / total) * 100) : 0;
   const xp = Math.round(score * 10 + (pct >= 80 ? 20 : 0));
 
-  // Save attempt + award XP
+  // Save attempt + award XP + update topic progress
   useEffect(() => {
     if (!user || saved.current || total === 0) return;
     saved.current = true;
@@ -45,6 +45,42 @@ const QuizResults = () => {
         source_type: "quiz",
         xp_amount: xp,
       });
+
+      // Update topic_progress if we have a topicId
+      if (topicId) {
+        const scorePct = total > 0 ? (score / total) * 100 : 0;
+
+        // Check existing progress
+        const { data: existing } = await supabase
+          .from("topic_progress")
+          .select("*")
+          .eq("user_id", user.id)
+          .eq("topic_id", topicId)
+          .maybeSingle();
+
+        if (existing) {
+          const newCount = existing.quiz_count + 1;
+          const newAvg = ((Number(existing.avg_quiz_score) * existing.quiz_count) + scorePct) / newCount;
+          // Mastery = weighted avg of quiz scores and lesson completion
+          const mastery = Math.round(newAvg * 0.7 + (existing.lessons_completed > 0 ? 30 : 0));
+
+          await supabase.from("topic_progress").update({
+            quiz_count: newCount,
+            avg_quiz_score: Math.round(newAvg),
+            mastery_score: mastery,
+            last_updated: new Date().toISOString(),
+          }).eq("id", existing.id);
+        } else {
+          const mastery = Math.round(scorePct * 0.7);
+          await supabase.from("topic_progress").insert({
+            user_id: user.id,
+            topic_id: topicId,
+            quiz_count: 1,
+            avg_quiz_score: Math.round(scorePct),
+            mastery_score: mastery,
+          });
+        }
+      }
     };
     save();
   }, [user, total]);
