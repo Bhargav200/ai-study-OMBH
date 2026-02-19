@@ -2,6 +2,9 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Brain, ArrowRight, Target, Zap, Clock, Trophy } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const goals = [
   { id: "homework", icon: Zap, label: "Get homework help", desc: "Solve problems faster with AI" },
@@ -14,11 +17,52 @@ const difficulties = ["Beginner", "Intermediate", "Advanced"];
 
 const LearningGoals = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
   const [difficulty, setDifficulty] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const toggleGoal = (id: string) =>
     setSelectedGoals((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+
+  const handleFinish = async () => {
+    if (selectedGoals.length === 0 || !difficulty) {
+      toast.error("Please select at least one goal and a difficulty level");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // Update preferences with goals & difficulty
+      const { error: prefError } = await supabase
+        .from("user_preferences")
+        .update({
+          goals: selectedGoals,
+          difficulty_level: difficulty,
+        })
+        .eq("user_id", user?.id);
+
+      if (prefError) throw prefError;
+
+      // Mark onboarding as complete
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({
+          onboarding_completed: true,
+          primary_goal: selectedGoals[0],
+          study_preference: difficulty,
+        })
+        .eq("user_id", user?.id);
+
+      if (profileError) throw profileError;
+
+      navigate("/dashboard");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to save goals");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -90,10 +134,11 @@ const LearningGoals = () => {
           </div>
 
           <Button
-            onClick={() => navigate("/dashboard")}
+            onClick={handleFinish}
             className="w-full h-11 bg-navy text-highlight hover:bg-navy/90 font-semibold gap-2"
+            disabled={isLoading}
           >
-            Start Learning <ArrowRight className="h-4 w-4" />
+            {isLoading ? "Saving..." : "Start Learning"} {!isLoading && <ArrowRight className="h-4 w-4" />}
           </Button>
         </div>
       </div>
