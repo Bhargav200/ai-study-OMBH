@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import ReactMarkdown from "react-markdown";
 
 const QUERY_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/query-material`;
 
@@ -153,7 +154,11 @@ const AILearning = () => {
                 ? "bg-muted text-foreground"
                 : "bg-navy text-highlight"
             }`}>
-              {msg.content}
+              {msg.role === "assistant" ? (
+                <div className="prose prose-sm prose-invert max-w-none [&_a]:text-accent [&_a]:underline">
+                  <ReactMarkdown>{msg.content}</ReactMarkdown>
+                </div>
+              ) : msg.content}
             </div>
           </div>
         ))}

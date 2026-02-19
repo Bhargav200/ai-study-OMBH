@@ -1,14 +1,14 @@
 import { Link } from "react-router-dom";
-import { BookOpen, MessageCircleQuestion, Gamepad2, Timer, Upload, BarChart3, Trophy, Flame, ArrowRight, TrendingUp, AlertTriangle, Zap, Lightbulb } from "lucide-react";
+import { BookOpen, MessageCircleQuestion, Gamepad2, Upload, BarChart3, Trophy, Flame, ArrowRight, TrendingUp, AlertTriangle, Zap, Lightbulb, Timer } from "lucide-react";
 import { useDashboardData } from "@/hooks/useDashboardData";
+import DashboardTimer from "@/components/DashboardTimer";
 
 const quickActions = [
   { icon: MessageCircleQuestion, label: "Ask a Doubt", desc: "Get instant AI help", to: "/doubts", color: "bg-accent/10 text-accent" },
   { icon: Gamepad2, label: "Practice Quiz", desc: "Test your knowledge", to: "/quiz", color: "bg-secondary text-navy" },
   { icon: BookOpen, label: "Continue Learning", desc: "Pick up where you left off", to: "/lessons", color: "bg-accent/10 text-accent" },
-  { icon: Timer, label: "Study Timer", desc: "Start a focused session", to: "/timer", color: "bg-secondary text-navy" },
-  { icon: Upload, label: "Upload Material", desc: "Learn from your docs", to: "/materials", color: "bg-accent/10 text-accent" },
-  { icon: BarChart3, label: "View Progress", desc: "Track your mastery", to: "/progress", color: "bg-secondary text-navy" },
+  { icon: Upload, label: "Upload Material", desc: "Learn from your docs", to: "/materials", color: "bg-secondary text-navy" },
+  { icon: BarChart3, label: "View Progress", desc: "Track your mastery", to: "/progress", color: "bg-accent/10 text-accent" },
 ];
 
 const Dashboard = () => {
@@ -24,9 +24,12 @@ const Dashboard = () => {
           <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">{greeting}, {displayName} 👋</h1>
           <p className="text-muted-foreground mt-1 text-sm">Ready to continue your learning journey?</p>
         </div>
-        <div className="hidden sm:flex items-center gap-2 bg-secondary px-4 py-2 rounded-xl">
-          <Flame className="h-4 w-4 text-destructive" />
-          <span className="text-sm font-bold text-navy">{streak?.current_streak ?? 0} day streak</span>
+        <div className="flex items-center gap-3">
+          <DashboardTimer />
+          <div className="hidden sm:flex items-center gap-2 bg-secondary px-4 py-2 rounded-xl">
+            <Flame className="h-4 w-4 text-destructive" />
+            <span className="text-sm font-bold text-navy">{streak?.current_streak ?? 0} day streak</span>
+          </div>
         </div>
       </div>
 
