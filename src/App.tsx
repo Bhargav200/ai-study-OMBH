@@ -3,6 +3,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/auth/Login";
@@ -37,37 +39,41 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/onboarding/profile" element={<ProfileSetup />} />
-          <Route path="/onboarding/goals" element={<LearningGoals />} />
+        <AuthProvider>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
 
-          {/* App screens with sidebar layout */}
-          <Route element={<AppLayout />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/lessons" element={<LessonList />} />
-            <Route path="/lessons/:id" element={<LessonViewer />} />
-            <Route path="/doubts" element={<DoubtInput />} />
-            <Route path="/doubts/solution" element={<AISolution />} />
-            <Route path="/quiz" element={<TopicSelection />} />
-            <Route path="/quiz/:id" element={<QuizPage />} />
-            <Route path="/quiz/:id/results" element={<QuizResults />} />
-            <Route path="/timer" element={<StudyTimerPage />} />
-            <Route path="/timer/summary" element={<SessionSummary />} />
-            <Route path="/materials" element={<MaterialUpload />} />
-            <Route path="/materials/learn" element={<AILearning />} />
-            <Route path="/progress" element={<ProgressDashboard />} />
-            <Route path="/leaderboard" element={<Leaderboard />} />
-            <Route path="/friends" element={<Friends />} />
-            <Route path="/achievements" element={<Achievements />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/settings" element={<Settings />} />
-          </Route>
+            {/* Protected: Onboarding */}
+            <Route path="/onboarding/profile" element={<ProtectedRoute><ProfileSetup /></ProtectedRoute>} />
+            <Route path="/onboarding/goals" element={<ProtectedRoute><LearningGoals /></ProtectedRoute>} />
 
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+            {/* Protected: App screens with sidebar layout */}
+            <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/lessons" element={<LessonList />} />
+              <Route path="/lessons/:id" element={<LessonViewer />} />
+              <Route path="/doubts" element={<DoubtInput />} />
+              <Route path="/doubts/solution" element={<AISolution />} />
+              <Route path="/quiz" element={<TopicSelection />} />
+              <Route path="/quiz/:id" element={<QuizPage />} />
+              <Route path="/quiz/:id/results" element={<QuizResults />} />
+              <Route path="/timer" element={<StudyTimerPage />} />
+              <Route path="/timer/summary" element={<SessionSummary />} />
+              <Route path="/materials" element={<MaterialUpload />} />
+              <Route path="/materials/learn" element={<AILearning />} />
+              <Route path="/progress" element={<ProgressDashboard />} />
+              <Route path="/leaderboard" element={<Leaderboard />} />
+              <Route path="/friends" element={<Friends />} />
+              <Route path="/achievements" element={<Achievements />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/settings" element={<Settings />} />
+            </Route>
+
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
