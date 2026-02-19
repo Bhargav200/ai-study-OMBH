@@ -1,25 +1,49 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Gamepad2, Search } from "lucide-react";
+import { Gamepad2, Search, Calculator, Atom, FlaskConical, Leaf } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
-const subjects = ["All", "Mathematics", "Physics", "Chemistry", "Biology"];
-
-const topics = [
-  { id: "1", title: "Quadratic Equations", subject: "Mathematics", questions: 20 },
-  { id: "2", title: "Newton's Laws", subject: "Physics", questions: 15 },
-  { id: "3", title: "Chemical Bonding", subject: "Chemistry", questions: 18 },
-  { id: "4", title: "Cell Biology", subject: "Biology", questions: 22 },
-  { id: "5", title: "Trigonometry", subject: "Mathematics", questions: 25 },
-  { id: "6", title: "Thermodynamics", subject: "Physics", questions: 12 },
-];
+const iconMap: Record<string, React.ReactNode> = {
+  calculator: <Gamepad2 className="h-5 w-5 text-navy" />,
+  atom: <Atom className="h-5 w-5 text-navy" />,
+  "flask-conical": <FlaskConical className="h-5 w-5 text-navy" />,
+  leaf: <Leaf className="h-5 w-5 text-navy" />,
+};
 
 const TopicSelection = () => {
   const [filter, setFilter] = useState("All");
   const [search, setSearch] = useState("");
-  const filtered = topics.filter(
-    (t) => (filter === "All" || t.subject === filter) && t.title.toLowerCase().includes(search.toLowerCase())
+
+  const { data: subjects } = useQuery({
+    queryKey: ["subjects"],
+    queryFn: async () => {
+      const { data } = await supabase.from("subjects").select("*").order("name");
+      return data ?? [];
+    },
+  });
+
+  const { data: topics, isLoading } = useQuery({
+    queryKey: ["quiz-topics"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("topics")
+        .select("*, subjects(name, icon)")
+        .order("sort_order");
+      return (data ?? []).map((t) => ({
+        ...t,
+        subjectName: (t.subjects as any)?.name ?? "",
+        subjectIcon: (t.subjects as any)?.icon ?? "",
+      }));
+    },
+  });
+
+  const subjectNames = ["All", ...(subjects?.map((s) => s.name) ?? [])];
+  const filtered = (topics ?? []).filter(
+    (t) => (filter === "All" || t.subjectName === filter) && t.title.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -35,7 +59,7 @@ const TopicSelection = () => {
           <Input placeholder="Search topics..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10 h-10" />
         </div>
         <div className="flex gap-2 overflow-x-auto">
-          {subjects.map((s) => (
+          {subjectNames.map((s) => (
             <button
               key={s}
               onClick={() => setFilter(s)}
@@ -50,26 +74,36 @@ const TopicSelection = () => {
       </div>
 
       <div className="grid sm:grid-cols-2 gap-3">
-        {filtered.map((t) => (
-          <Link
-            key={t.id}
-            to={`/quiz/${t.id}`}
-            className="bg-card border border-border rounded-xl p-5 hover:border-accent/50 transition-colors group"
-          >
-            <div className="flex items-start gap-4">
-              <div className="h-10 w-10 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0">
-                <Gamepad2 className="h-5 w-5 text-navy" />
+        {isLoading
+          ? Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="bg-card border border-border rounded-xl p-5">
+                <Skeleton className="h-10 w-10 rounded-lg mb-3" />
+                <Skeleton className="h-4 w-40 mb-2" />
+                <Skeleton className="h-3 w-24" />
+                <Skeleton className="h-9 w-full mt-4" />
               </div>
-              <div className="flex-1">
-                <div className="text-sm font-semibold text-foreground">{t.title}</div>
-                <div className="text-xs text-muted-foreground mt-0.5">{t.subject} · {t.questions} questions</div>
-              </div>
-            </div>
-            <Button size="sm" className="w-full mt-4 bg-navy text-highlight hover:bg-navy/90 text-xs">
-              Start Quiz
-            </Button>
-          </Link>
-        ))}
+            ))
+          : filtered.map((t) => (
+              <Link
+                key={t.id}
+                to={`/quiz/${t.id}`}
+                state={{ topicTitle: t.title, subjectName: t.subjectName }}
+                className="bg-card border border-border rounded-xl p-5 hover:border-accent/50 transition-colors group"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="h-10 w-10 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0">
+                    {iconMap[t.subjectIcon] ?? <Gamepad2 className="h-5 w-5 text-navy" />}
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-sm font-semibold text-foreground">{t.title}</div>
+                    <div className="text-xs text-muted-foreground mt-0.5">{t.subjectName} · {t.lesson_count} lessons</div>
+                  </div>
+                </div>
+                <Button size="sm" className="w-full mt-4 bg-navy text-highlight hover:bg-navy/90 text-xs">
+                  Start Quiz
+                </Button>
+              </Link>
+            ))}
       </div>
     </div>
   );
