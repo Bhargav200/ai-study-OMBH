@@ -15,6 +15,7 @@ const QuizResults = () => {
   const total = state?.total ?? 0;
   const topicTitle = state?.topicTitle ?? "Quiz";
   const topicId = state?.topicId;
+  const quizId = state?.quizId;
   const questions = state?.questions ?? [];
   const answers = state?.answers ?? [];
   const timeSeconds = state?.timeSeconds ?? 0;
@@ -31,6 +32,7 @@ const QuizResults = () => {
       await supabase.from("quiz_attempts").insert({
         user_id: user.id,
         topic_id: topicId || null,
+        quiz_id: quizId || null,
         topic_title: topicTitle,
         score,
         total_questions: total,

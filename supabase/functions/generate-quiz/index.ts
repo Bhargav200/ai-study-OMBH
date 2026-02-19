@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -14,7 +15,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { topic, subject, count = 5 } = await req.json();
+    const { topic, subject, count = 5, topicId } = await req.json();
     if (!topic) {
       return new Response(JSON.stringify({ error: "Topic is required" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -89,7 +90,52 @@ serve(async (req) => {
     if (!toolCall) throw new Error("No quiz generated");
 
     const quiz = JSON.parse(toolCall.function.arguments);
-    return new Response(JSON.stringify(quiz), {
+
+    // Persist quiz to DB
+    let quizId: string | null = null;
+    try {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+      const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+      const supabase = createClient(supabaseUrl, supabaseKey);
+
+      const { data: quizRow } = await supabase
+        .from("quizzes")
+        .insert({ topic_id: topicId || null, generated_by_ai: true })
+        .select("id")
+        .single();
+
+      quizId = quizRow?.id;
+
+      if (quizId && quiz.questions) {
+        const rows = quiz.questions.map((q: any) => ({
+          quiz_id: quizId,
+          question_text: q.question,
+          options: q.options,
+          correct_answer: String(q.correct),
+          explanation: q.explanation || "",
+        }));
+        await supabase.from("quiz_questions").insert(rows);
+      }
+
+      // Log AI usage
+      const authHeader = req.headers.get("authorization");
+      if (authHeader) {
+        const token = authHeader.replace("Bearer ", "");
+        const { data: { user } } = await supabase.auth.getUser(token);
+        if (user) {
+          await supabase.from("ai_usage_logs").insert({
+            user_id: user.id,
+            feature_type: "quiz",
+            model_name: "google/gemini-3-flash-preview",
+            request_status: "success",
+          });
+        }
+      }
+    } catch (e) {
+      console.error("Error persisting quiz:", e);
+    }
+
+    return new Response(JSON.stringify({ ...quiz, quizId }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
