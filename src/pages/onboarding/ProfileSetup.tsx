@@ -3,6 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Brain, ArrowRight, GraduationCap } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const learnerTypes = ["Individual Learner", "School / Institution"];
 const grades = ["Grade 6", "Grade 7", "Grade 8", "Grade 9", "Grade 10", "Grade 11", "Grade 12", "College"];
@@ -10,12 +13,14 @@ const subjects = ["Mathematics", "Physics", "Chemistry", "Biology", "English", "
 
 const ProfileSetup = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [name, setName] = useState("");
   const [learnerType, setLearnerType] = useState("");
   const [selectedGrade, setSelectedGrade] = useState("");
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [customSubject, setCustomSubject] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const toggleSubject = (s: string) =>
     setSelectedSubjects((prev) => (prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]));
@@ -26,6 +31,44 @@ const ProfileSetup = () => {
       setSelectedSubjects((prev) => [...prev, trimmed]);
       setCustomSubject("");
       setShowCustomInput(false);
+    }
+  };
+
+  const handleContinue = async () => {
+    if (!name.trim() || !selectedGrade || selectedSubjects.length === 0) {
+      toast.error("Please fill in your name, grade, and select at least one subject");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // Update profile
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({
+          full_name: name.trim(),
+          grade_level: selectedGrade,
+        })
+        .eq("user_id", user?.id);
+
+      if (profileError) throw profileError;
+
+      // Upsert preferences
+      const { error: prefError } = await supabase
+        .from("user_preferences")
+        .upsert({
+          user_id: user?.id,
+          subjects: selectedSubjects,
+          learner_type: learnerType,
+        }, { onConflict: "user_id" });
+
+      if (prefError) throw prefError;
+
+      navigate("/onboarding/goals");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to save profile");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -170,10 +213,11 @@ const ProfileSetup = () => {
           </div>
 
           <Button
-            onClick={() => navigate("/onboarding/goals")}
+            onClick={handleContinue}
             className="w-full h-11 bg-navy text-highlight hover:bg-navy/90 font-semibold gap-2"
+            disabled={isLoading}
           >
-            Continue <ArrowRight className="h-4 w-4" />
+            {isLoading ? "Saving..." : "Continue"} {!isLoading && <ArrowRight className="h-4 w-4" />}
           </Button>
         </div>
       </div>
