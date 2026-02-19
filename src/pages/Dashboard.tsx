@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { BookOpen, MessageCircleQuestion, Gamepad2, Timer, Upload, BarChart3, Trophy, Flame, ArrowRight, TrendingUp, AlertTriangle, Zap } from "lucide-react";
+import { BookOpen, MessageCircleQuestion, Gamepad2, Timer, Upload, BarChart3, Trophy, Flame, ArrowRight, TrendingUp, AlertTriangle, Zap, Lightbulb } from "lucide-react";
 import { useDashboardData } from "@/hooks/useDashboardData";
 
 const quickActions = [
@@ -12,10 +12,8 @@ const quickActions = [
 ];
 
 const Dashboard = () => {
-  const { profile, streak, totalXp, studyTime, avgScore, continueLearning, greeting } = useDashboardData();
+  const { profile, streak, totalXp, studyTime, avgScore, continueLearning, weakTopics, greeting } = useDashboardData();
   const displayName = profile?.full_name?.split(" ")[0] || "there";
-
-  // Level calc for leaderboard display
   const level = Math.floor(totalXp / 200) + 1;
 
   return (
@@ -70,7 +68,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Two-column: Continue + Leaderboard */}
+      {/* Two-column: Continue + Stats */}
       <div className="grid md:grid-cols-2 gap-6">
         {/* Continue learning */}
         <div className="bg-card border border-border rounded-xl p-5 space-y-4">
@@ -104,7 +102,7 @@ const Dashboard = () => {
           )}
         </div>
 
-        {/* Leaderboard preview */}
+        {/* Your Stats */}
         <div className="bg-card border border-border rounded-xl p-5 space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="font-semibold text-foreground">Your Stats</h3>
@@ -130,15 +128,40 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Weak topics alert */}
-      <div className="flex items-start gap-3 bg-secondary/50 border border-accent/10 rounded-xl px-5 py-4">
-        <AlertTriangle className="h-5 w-5 text-accent mt-0.5 flex-shrink-0" />
-        <div>
-          <div className="text-sm font-semibold text-foreground">Complete quizzes to identify weak topics</div>
-          <div className="text-xs text-muted-foreground mt-1">Take a quiz to get personalized recommendations on where to focus.</div>
+      {/* Weak topics / recommendations */}
+      {weakTopics.length > 0 ? (
+        <div className="bg-secondary/50 border border-accent/10 rounded-xl p-5 space-y-3">
+          <div className="flex items-center gap-2">
+            <Lightbulb className="h-5 w-5 text-accent" />
+            <span className="font-semibold text-sm text-foreground">Recommended Focus Areas</span>
+          </div>
+          <p className="text-xs text-muted-foreground">Based on your quiz scores, these topics need more practice:</p>
+          <div className="grid sm:grid-cols-2 gap-3">
+            {weakTopics.map((t: any) => (
+              <Link
+                key={t.topicId}
+                to={`/lessons/${t.topicId}`}
+                className="bg-card border border-border rounded-lg px-4 py-3 hover:border-accent/50 transition-colors"
+              >
+                <div className="text-sm font-medium text-foreground">{t.topicTitle}</div>
+                <div className="flex items-center justify-between mt-1">
+                  <span className="text-xs text-muted-foreground">{t.subject}</span>
+                  <span className="text-xs font-bold text-destructive">{t.mastery}% mastery</span>
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
-        <Link to="/quiz" className="ml-auto text-xs font-medium text-accent hover:underline whitespace-nowrap">Take quiz →</Link>
-      </div>
+      ) : (
+        <div className="flex items-start gap-3 bg-secondary/50 border border-accent/10 rounded-xl px-5 py-4">
+          <AlertTriangle className="h-5 w-5 text-accent mt-0.5 flex-shrink-0" />
+          <div>
+            <div className="text-sm font-semibold text-foreground">Complete quizzes to identify weak topics</div>
+            <div className="text-xs text-muted-foreground mt-1">Take a quiz to get personalized recommendations on where to focus.</div>
+          </div>
+          <Link to="/quiz" className="ml-auto text-xs font-medium text-accent hover:underline whitespace-nowrap">Take quiz →</Link>
+        </div>
+      )}
     </div>
   );
 };

@@ -80,7 +80,6 @@ export const useDashboardData = () => {
     queryKey: ["continueLearning", user?.id],
     queryFn: async () => {
       if (!user) return [];
-      // Get user's lesson progress
       const { data: progress } = await supabase
         .from("user_lesson_progress")
         .select("lesson_id, completed")
@@ -88,7 +87,6 @@ export const useDashboardData = () => {
 
       const completedSet = new Set((progress ?? []).filter((p) => p.completed).map((p) => p.lesson_id));
 
-      // Get all topics with their lessons
       const { data: topics } = await supabase
         .from("topics")
         .select("id, title, subject_id, subjects(name)")
@@ -101,8 +99,7 @@ export const useDashboardData = () => {
 
       if (!topics || !lessons) return [];
 
-      // Find topics that are in-progress (some but not all lessons done)
-      const inProgress = topics
+      return topics
         .map((t) => {
           const topicLessons = lessons.filter((l) => l.topic_id === t.id);
           const done = topicLessons.filter((l) => completedSet.has(l.id)).length;
@@ -119,8 +116,42 @@ export const useDashboardData = () => {
         })
         .filter(Boolean)
         .slice(0, 3);
+    },
+    enabled: !!user,
+  });
 
-      return inProgress;
+  // Weak topics from topic_progress
+  const { data: weakTopics } = useQuery({
+    queryKey: ["weakTopics", user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data: tp } = await supabase
+        .from("topic_progress")
+        .select("topic_id, mastery_score, avg_quiz_score")
+        .eq("user_id", user.id)
+        .lt("mastery_score", 60)
+        .order("mastery_score", { ascending: true })
+        .limit(4);
+
+      if (!tp || tp.length === 0) return [];
+
+      const topicIds = tp.map((t) => t.topic_id);
+      const { data: topics } = await supabase
+        .from("topics")
+        .select("id, title, subject_id, subjects(name)")
+        .in("id", topicIds);
+
+      const topicMap = new Map((topics ?? []).map((t) => [t.id, t]));
+
+      return tp.map((t) => {
+        const topic = topicMap.get(t.topic_id);
+        return {
+          topicId: t.topic_id,
+          topicTitle: topic?.title ?? "Unknown",
+          subject: (topic?.subjects as any)?.name ?? "",
+          mastery: Math.round(Number(t.mastery_score)),
+        };
+      });
     },
     enabled: !!user,
   });
@@ -139,6 +170,7 @@ export const useDashboardData = () => {
     studyTime: studyTime ?? "0h",
     avgScore: avgScore ?? null,
     continueLearning: continueLearning ?? [],
+    weakTopics: weakTopics ?? [],
     greeting: greeting(),
   };
 };

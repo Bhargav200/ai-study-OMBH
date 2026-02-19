@@ -156,6 +156,30 @@ export type Database = {
           },
         ]
       }
+      friends: {
+        Row: {
+          addressee_id: string
+          created_at: string
+          id: string
+          requester_id: string
+          status: string
+        }
+        Insert: {
+          addressee_id: string
+          created_at?: string
+          id?: string
+          requester_id: string
+          status?: string
+        }
+        Update: {
+          addressee_id?: string
+          created_at?: string
+          id?: string
+          requester_id?: string
+          status?: string
+        }
+        Relationships: []
+      }
       lessons: {
         Row: {
           content: string
@@ -476,6 +500,47 @@ export type Database = {
         }
         Relationships: []
       }
+      topic_progress: {
+        Row: {
+          avg_quiz_score: number
+          id: string
+          last_updated: string
+          lessons_completed: number
+          mastery_score: number
+          quiz_count: number
+          topic_id: string
+          user_id: string
+        }
+        Insert: {
+          avg_quiz_score?: number
+          id?: string
+          last_updated?: string
+          lessons_completed?: number
+          mastery_score?: number
+          quiz_count?: number
+          topic_id: string
+          user_id: string
+        }
+        Update: {
+          avg_quiz_score?: number
+          id?: string
+          last_updated?: string
+          lessons_completed?: number
+          mastery_score?: number
+          quiz_count?: number
+          topic_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "topic_progress_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       topics: {
         Row: {
           created_at: string
@@ -610,6 +675,45 @@ export type Database = {
           learner_type?: string | null
           subjects?: string[]
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_recommendations: {
+        Row: {
+          description: string | null
+          dismissed: boolean
+          expires_at: string | null
+          generated_at: string
+          id: string
+          priority_score: number
+          recommendation_type: string
+          reference_id: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          description?: string | null
+          dismissed?: boolean
+          expires_at?: string | null
+          generated_at?: string
+          id?: string
+          priority_score?: number
+          recommendation_type: string
+          reference_id?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          description?: string | null
+          dismissed?: boolean
+          expires_at?: string | null
+          generated_at?: string
+          id?: string
+          priority_score?: number
+          recommendation_type?: string
+          reference_id?: string | null
+          title?: string
           user_id?: string
         }
         Relationships: []
