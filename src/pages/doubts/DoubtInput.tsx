@@ -2,21 +2,23 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { ImagePlus, Send, Sparkles, BookOpen, Calculator, Atom } from "lucide-react";
-
-const recentDoubts = [
-  "How do I solve integrals by substitution?",
-  "Explain the photoelectric effect",
-  "What is the difference between mitosis and meiosis?",
-];
+import { Send, Sparkles, BookOpen, Calculator, Atom } from "lucide-react";
 
 const DoubtInput = () => {
   const navigate = useNavigate();
   const [question, setQuestion] = useState("");
 
   const handleSubmit = () => {
-    if (question.trim()) navigate("/doubts/solution");
+    if (question.trim()) {
+      navigate("/doubts/solution", { state: { question: question.trim() } });
+    }
   };
+
+  const recentDoubts = [
+    "How do I solve integrals by substitution?",
+    "Explain the photoelectric effect",
+    "What is the difference between mitosis and meiosis?",
+  ];
 
   return (
     <div className="p-6 md:p-8 max-w-3xl mx-auto space-y-8">
@@ -36,12 +38,10 @@ const DoubtInput = () => {
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
           className="min-h-[120px] resize-none"
+          onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && question.trim()) { e.preventDefault(); handleSubmit(); } }}
         />
 
         <div className="flex items-center gap-3">
-          <Button variant="outline" size="sm" className="gap-2 text-xs">
-            <ImagePlus className="h-4 w-4" /> Upload Image
-          </Button>
           <div className="flex-1" />
           <Button
             onClick={handleSubmit}
@@ -53,7 +53,6 @@ const DoubtInput = () => {
         </div>
       </div>
 
-      {/* Quick subject shortcuts */}
       <div className="grid grid-cols-3 gap-3">
         {[
           { icon: Calculator, label: "Math", color: "bg-secondary text-navy" },
@@ -73,9 +72,8 @@ const DoubtInput = () => {
         ))}
       </div>
 
-      {/* Recent doubts */}
       <div className="space-y-3">
-        <h3 className="text-sm font-semibold text-foreground">Recent Doubts</h3>
+        <h3 className="text-sm font-semibold text-foreground">Try These</h3>
         {recentDoubts.map((d) => (
           <button
             key={d}
