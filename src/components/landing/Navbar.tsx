@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Brain } from "lucide-react";
 
@@ -39,11 +40,11 @@ const Navbar = () => {
 
         {/* Right */}
         <div className="hidden md:flex items-center gap-3">
-          <Button variant="ghost" size="sm" className="text-sm font-medium">
-            Sign In
+          <Button variant="ghost" size="sm" className="text-sm font-medium" asChild>
+            <Link to="/login">Sign In</Link>
           </Button>
-          <Button size="sm" className="bg-navy text-highlight hover:bg-navy/90 text-sm font-semibold rounded-lg px-5">
-            Start Learning Free
+          <Button size="sm" className="bg-navy text-highlight hover:bg-navy/90 text-sm font-semibold rounded-lg px-5" asChild>
+            <Link to="/signup">Start Learning Free</Link>
           </Button>
         </div>
 
@@ -61,8 +62,12 @@ const Navbar = () => {
             </a>
           ))}
           <div className="pt-3 border-t border-border space-y-2">
-            <Button variant="ghost" className="w-full justify-start text-sm">Sign In</Button>
-            <Button className="w-full bg-navy text-highlight text-sm">Start Learning Free</Button>
+            <Button variant="ghost" className="w-full justify-start text-sm" asChild>
+              <Link to="/login">Sign In</Link>
+            </Button>
+            <Button className="w-full bg-navy text-highlight text-sm" asChild>
+              <Link to="/signup">Start Learning Free</Link>
+            </Button>
           </div>
         </div>
       )}

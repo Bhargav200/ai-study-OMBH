@@ -55,8 +55,8 @@ const AppLayout = () => {
               <User className="h-4 w-4 text-navy" />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-sm font-medium text-foreground truncate">John Doe</div>
-              <div className="text-xs text-muted-foreground">1,760 XP</div>
+              <div className="text-sm font-medium text-foreground truncate">My Account</div>
+              <div className="text-xs text-muted-foreground">View Profile</div>
             </div>
           </div>
         </div>

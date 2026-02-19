@@ -48,9 +48,9 @@ const Login = () => {
           </p>
           <div className="flex gap-6 pt-4">
             {[
-              { value: "50K+", label: "Students" },
-              { value: "1M+", label: "Questions Solved" },
-              { value: "98%", label: "Satisfaction" },
+              { value: "—", label: "Students" },
+              { value: "—", label: "Questions Solved" },
+              { value: "—", label: "Satisfaction" },
             ].map((s) => (
               <div key={s.label}>
                 <div className="text-2xl font-bold text-highlight">{s.value}</div>
