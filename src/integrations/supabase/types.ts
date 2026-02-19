@@ -198,6 +198,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          quiz_id: string | null
           score: number
           topic_id: string | null
           topic_title: string
@@ -208,6 +209,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          quiz_id?: string | null
           score?: number
           topic_id?: string | null
           topic_title: string
@@ -218,6 +220,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          quiz_id?: string | null
           score?: number
           topic_id?: string | null
           topic_title?: string
@@ -227,7 +230,81 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "quiz_attempts_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "quizzes"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "quiz_attempts_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quiz_questions: {
+        Row: {
+          correct_answer: string
+          created_at: string
+          explanation: string | null
+          id: string
+          options: Json
+          question_text: string
+          quiz_id: string
+        }
+        Insert: {
+          correct_answer: string
+          created_at?: string
+          explanation?: string | null
+          id?: string
+          options?: Json
+          question_text: string
+          quiz_id: string
+        }
+        Update: {
+          correct_answer?: string
+          created_at?: string
+          explanation?: string | null
+          id?: string
+          options?: Json
+          question_text?: string
+          quiz_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_questions_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "quizzes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quizzes: {
+        Row: {
+          created_at: string
+          generated_by_ai: boolean
+          id: string
+          topic_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          generated_by_ai?: boolean
+          id?: string
+          topic_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          generated_by_ai?: boolean
+          id?: string
+          topic_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quizzes_topic_id_fkey"
             columns: ["topic_id"]
             isOneToOne: false
             referencedRelation: "topics"

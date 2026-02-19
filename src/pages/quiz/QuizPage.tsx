@@ -3,6 +3,7 @@ import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Clock, ArrowRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Question {
   question: string;
@@ -17,10 +18,12 @@ const QuizPage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const location = useLocation();
+  const { session } = useAuth();
   const topicTitle = (location.state as any)?.topicTitle ?? "Quiz";
   const subjectName = (location.state as any)?.subjectName ?? "";
 
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [quizId, setQuizId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [current, setCurrent] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
@@ -35,13 +38,17 @@ const QuizPage = () => {
 
     const run = async () => {
       try {
+        const headers: Record<string, string> = { "Content-Type": "application/json" };
+        if (session?.access_token) {
+          headers["Authorization"] = `Bearer ${session.access_token}`;
+        } else {
+          headers["Authorization"] = `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`;
+        }
+
         const resp = await fetch(QUIZ_URL, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
-          body: JSON.stringify({ topic: topicTitle, subject: subjectName, count: 5 }),
+          headers,
+          body: JSON.stringify({ topic: topicTitle, subject: subjectName, count: 5, topicId: id }),
         });
         if (!resp.ok) {
           const err = await resp.json().catch(() => ({}));
@@ -49,6 +56,7 @@ const QuizPage = () => {
         }
         const data = await resp.json();
         setQuestions(data.questions ?? []);
+        setQuizId(data.quizId ?? null);
         setAnswers(Array(data.questions?.length ?? 0).fill(null));
       } catch (e: any) {
         toast.error(e.message);
@@ -58,7 +66,7 @@ const QuizPage = () => {
       }
     };
     run();
-  }, [topicTitle, subjectName]);
+  }, [topicTitle, subjectName, id, session]);
 
   // Timer
   useEffect(() => {
@@ -83,7 +91,7 @@ const QuizPage = () => {
     } else {
       const score = newAnswers.filter((a, i) => a === questions[i].correct).length;
       navigate(`/quiz/${id}/results`, {
-        state: { score, total: questions.length, topicTitle, topicId: id, questions, answers: newAnswers, timeSeconds: timer },
+        state: { score, total: questions.length, topicTitle, topicId: id, quizId, questions, answers: newAnswers, timeSeconds: timer },
       });
     }
   };
