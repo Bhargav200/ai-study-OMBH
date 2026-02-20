@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Brain, ArrowRight, Target, Zap, Clock, Trophy } from "lucide-react";
+import { ArrowRight, Target, Zap, Clock, Trophy } from "lucide-react";
+import vistarLogo from "@/assets/vistar-logo.png";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -67,11 +68,8 @@ const LearningGoals = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <div className="border-b border-border px-6 py-4">
-        <div className="flex items-center gap-2.5 font-bold text-lg text-foreground">
-          <div className="h-8 w-8 rounded-lg bg-navy flex items-center justify-center">
-            <Brain className="h-5 w-5 text-highlight" />
-          </div>
-          <span className="tracking-tight">StudyMind</span>
+        <div className="flex items-center">
+          <img src={vistarLogo} alt="Vistar Study Universe" className="h-9 w-auto" />
         </div>
       </div>
 

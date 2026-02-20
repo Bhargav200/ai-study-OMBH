@@ -1,5 +1,6 @@
 import { Link, Outlet, useLocation } from "react-router-dom";
-import { Brain, LayoutDashboard, BookOpen, MessageCircleQuestion, Trophy, BarChart3, Upload, Settings, User, Flame, Gamepad2, Bot } from "lucide-react";
+import { LayoutDashboard, BookOpen, MessageCircleQuestion, Trophy, BarChart3, Upload, Settings, User, Flame, Gamepad2, Bot } from "lucide-react";
+import vistarLogo from "@/assets/vistar-logo.png";
 
 const sidebarLinks = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
@@ -23,11 +24,8 @@ const AppLayout = () => {
       {/* Sidebar */}
       <aside className="hidden md:flex w-64 flex-col border-r border-border bg-card fixed inset-y-0 left-0 z-30">
         <div className="px-5 py-5 border-b border-border">
-          <Link to="/" className="flex items-center gap-2.5 font-bold text-lg text-foreground">
-            <div className="h-8 w-8 rounded-lg bg-navy flex items-center justify-center">
-              <Brain className="h-5 w-5 text-highlight" />
-            </div>
-            <span className="tracking-tight">StudyMind</span>
+          <Link to="/" className="flex items-center">
+            <img src={vistarLogo} alt="Vistar Study Universe" className="h-9 w-auto" />
           </Link>
         </div>
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">

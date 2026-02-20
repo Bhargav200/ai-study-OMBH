@@ -1,6 +1,6 @@
-import { Brain } from "lucide-react";
 import { Link } from "react-router-dom";
 import { BackgroundPaths } from "@/components/ui/background-paths";
+import vistarLogo from "@/assets/vistar-logo.png";
 
 const footerLinks = {
   Platform: ["AI Tutor", "Quiz Engine", "Progress Tracker", "Study Timer"],
@@ -19,11 +19,8 @@ const Footer = () => (
       <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
         {/* Brand */}
         <div className="col-span-2 md:col-span-1">
-          <Link to="/" className="flex items-center gap-2 font-bold text-lg text-highlight mb-4">
-            <div className="h-7 w-7 rounded-lg bg-navy border border-interface/30 flex items-center justify-center">
-              <Brain className="h-4 w-4 text-highlight" />
-            </div>
-            StudyMind
+          <Link to="/" className="flex items-center mb-4">
+            <img src={vistarLogo} alt="Vistar Study Universe" className="h-9 w-auto brightness-0 invert" />
           </Link>
           <p className="text-xs text-soft leading-relaxed">
             AI-powered learning platform for smarter studying.
@@ -47,7 +44,7 @@ const Footer = () => (
 
       <div className="border-t border-interface/10 mt-12 pt-8 text-center">
         <p className="text-xs text-soft/50">
-          © 2026 StudyMind. All rights reserved.
+          © 2026 Vistar Study Universe. All rights reserved.
         </p>
       </div>
     </div>

@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Brain, Mail, Lock, User, ArrowRight } from "lucide-react";
+import { Mail, Lock, User, ArrowRight } from "lucide-react";
+import vistarLogo from "@/assets/vistar-logo.png";
 import { useAuth } from "@/contexts/AuthContext";
 import { lovable } from "@/integrations/lovable/index";
 import { toast } from "sonner";
@@ -44,11 +45,8 @@ const Signup = () => {
       <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-navy via-deep to-navy/80" />
         <div className="relative z-10">
-          <Link to="/" className="flex items-center gap-2.5 font-bold text-lg text-highlight">
-            <div className="h-9 w-9 rounded-lg bg-navy border border-interface/30 flex items-center justify-center">
-              <Brain className="h-5 w-5 text-highlight" />
-            </div>
-            <span className="tracking-tight">StudyMind</span>
+          <Link to="/" className="flex items-center">
+            <img src={vistarLogo} alt="Vistar Study Universe" className="h-10 w-auto brightness-0 invert opacity-80" />
           </Link>
         </div>
         <div className="relative z-10 space-y-6">
@@ -69,17 +67,14 @@ const Signup = () => {
             ))}
           </div>
         </div>
-        <div className="relative z-10 text-xs text-soft">© 2026 StudyMind. All rights reserved.</div>
+        <div className="relative z-10 text-xs text-soft">© 2026 Vistar Study Universe. All rights reserved.</div>
       </div>
 
       {/* Right form */}
       <div className="flex-1 flex items-center justify-center p-6 bg-background">
         <div className="w-full max-w-md space-y-8">
-          <div className="lg:hidden flex items-center gap-2.5 font-bold text-lg text-foreground mb-8">
-            <div className="h-9 w-9 rounded-lg bg-navy flex items-center justify-center">
-              <Brain className="h-5 w-5 text-highlight" />
-            </div>
-            <span>StudyMind</span>
+          <div className="lg:hidden flex items-center mb-8">
+            <img src={vistarLogo} alt="Vistar Study Universe" className="h-9 w-auto" />
           </div>
 
           <div>
