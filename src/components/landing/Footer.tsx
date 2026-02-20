@@ -1,5 +1,6 @@
 import { Brain } from "lucide-react";
 import { Link } from "react-router-dom";
+import { BackgroundPaths } from "@/components/ui/background-paths";
 
 const footerLinks = {
   Platform: ["AI Tutor", "Quiz Engine", "Progress Tracker", "Study Timer"],
@@ -8,8 +9,13 @@ const footerLinks = {
 };
 
 const Footer = () => (
-  <footer className="bg-deep text-deep-foreground border-t border-interface/10">
-    <div className="container max-w-7xl mx-auto px-4 py-16">
+  <footer className="bg-deep text-deep-foreground border-t border-interface/10 relative overflow-hidden">
+    {/* Background Paths decoration */}
+    <div className="absolute inset-0 opacity-40 pointer-events-none">
+      <BackgroundPaths />
+    </div>
+
+    <div className="container relative max-w-7xl mx-auto px-4 py-16">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
         {/* Brand */}
         <div className="col-span-2 md:col-span-1">
