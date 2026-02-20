@@ -292,9 +292,12 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string
+          discord_username: string | null
+          facebook_username: string | null
           full_name: string | null
           grade_level: string | null
           id: string
+          instagram_username: string | null
           onboarding_completed: boolean
           primary_goal: string | null
           study_preference: string | null
@@ -303,9 +306,12 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          discord_username?: string | null
+          facebook_username?: string | null
           full_name?: string | null
           grade_level?: string | null
           id?: string
+          instagram_username?: string | null
           onboarding_completed?: boolean
           primary_goal?: string | null
           study_preference?: string | null
@@ -314,9 +320,12 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          discord_username?: string | null
+          facebook_username?: string | null
           full_name?: string | null
           grade_level?: string | null
           id?: string
+          instagram_username?: string | null
           onboarding_completed?: boolean
           primary_goal?: string | null
           study_preference?: string | null
