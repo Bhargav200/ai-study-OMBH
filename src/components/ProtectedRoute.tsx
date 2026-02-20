@@ -3,6 +3,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
+const DEV_BYPASS = true; // Set to false to enforce auth
+
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
   const location = useLocation();
@@ -10,6 +12,12 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const [onboardingCompleted, setOnboardingCompleted] = useState<boolean | null>(null);
 
   useEffect(() => {
+    if (DEV_BYPASS) {
+      setOnboardingChecked(true);
+      setOnboardingCompleted(true);
+      return;
+    }
+
     if (!user) {
       setOnboardingChecked(true);
       return;
@@ -29,7 +37,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     checkOnboarding();
   }, [user]);
 
-  if (loading || !onboardingChecked) {
+  if (!DEV_BYPASS && (loading || !onboardingChecked)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
@@ -37,13 +45,12 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
-  if (!user) {
+  if (!DEV_BYPASS && !user) {
     return <Navigate to="/login" replace />;
   }
 
-  // If onboarding not completed and not already on an onboarding page, redirect
   const isOnboardingRoute = location.pathname.startsWith("/onboarding");
-  if (!onboardingCompleted && !isOnboardingRoute) {
+  if (!DEV_BYPASS && !onboardingCompleted && !isOnboardingRoute) {
     return <Navigate to="/onboarding/profile" replace />;
   }
 
