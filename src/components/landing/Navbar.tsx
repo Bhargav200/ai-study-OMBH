@@ -76,7 +76,7 @@ const Navbar = () => {
   const [open, setOpen] = useState(false);
 
   return (
-    <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
+    <nav className="sticky top-0 z-50 bg-transparent backdrop-blur-md border-b border-transparent">
       <div className="container flex items-center justify-between h-16 px-4 mx-auto max-w-7xl">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2.5 font-bold text-lg text-foreground">
