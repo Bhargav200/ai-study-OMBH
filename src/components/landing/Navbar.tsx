@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Brain, Menu, BookOpen, Bot, BarChart3, Trophy, Timer, Zap, HelpCircle } from "lucide-react";
+import { Menu, BookOpen, Bot, BarChart3, Trophy, Timer, Zap, HelpCircle } from "lucide-react";
+import vistarLogo from "@/assets/vistar-logo.png";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -54,7 +55,7 @@ const features = [
 const resources = [
   {
     title: "How It Works",
-    description: "Learn how StudyMind helps you study smarter",
+    description: "Learn how Vistar helps you study smarter",
     icon: <HelpCircle className="h-5 w-5 shrink-0 text-highlight" />,
     href: "#how-it-works",
   },
@@ -79,11 +80,8 @@ const Navbar = () => {
     <nav className="sticky top-0 z-50 bg-transparent backdrop-blur-md border-b border-transparent">
       <div className="container flex items-center justify-between h-16 px-4 mx-auto max-w-7xl">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2.5 font-bold text-lg text-foreground">
-          <div className="h-8 w-8 rounded-lg bg-navy flex items-center justify-center">
-            <Brain className="h-5 w-5 text-highlight" />
-          </div>
-          <span className="tracking-tight">StudyMind</span>
+        <Link to="/" className="flex items-center">
+          <img src={vistarLogo} alt="Vistar Study Universe" className="h-10 w-auto" />
         </Link>
 
         {/* Center nav - Desktop */}
@@ -178,11 +176,8 @@ const Navbar = () => {
           <SheetContent side="left" className="w-80">
             <SheetHeader>
               <SheetTitle>
-                <Link to="/" className="flex items-center gap-2 font-bold text-foreground" onClick={() => setOpen(false)}>
-                  <div className="h-8 w-8 rounded-lg bg-navy flex items-center justify-center">
-                    <Brain className="h-5 w-5 text-highlight" />
-                  </div>
-                  StudyMind
+                <Link to="/" className="flex items-center" onClick={() => setOpen(false)}>
+                  <img src={vistarLogo} alt="Vistar Study Universe" className="h-9 w-auto" />
                 </Link>
               </SheetTitle>
             </SheetHeader>
