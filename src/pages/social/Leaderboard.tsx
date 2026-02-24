@@ -1,10 +1,16 @@
-import { Trophy } from "lucide-react";
+import { Trophy, Zap, Flame, Users } from "lucide-react";
+import { Link } from "react-router-dom";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { Skeleton } from "@/components/ui/skeleton";
+
+const iconMap: Record<string, React.ElementType> = {};
 
 const Leaderboard = () => {
   const { user } = useAuth();
+  const [tab, setTab] = useState<"global" | "friends">("global");
 
   const { data: myXp } = useQuery({
     queryKey: ["my-xp", user?.id],
@@ -26,7 +32,16 @@ const Leaderboard = () => {
     enabled: !!user,
   });
 
-  // Fetch accepted friends
+  const { data: streak } = useQuery({
+    queryKey: ["streak", user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data } = await supabase.from("user_streaks").select("*").eq("user_id", user.id).maybeSingle();
+      return data;
+    },
+    enabled: !!user,
+  });
+
   const { data: friendUsers } = useQuery({
     queryKey: ["leaderboard-friends", user?.id],
     queryFn: async () => {
@@ -56,8 +71,22 @@ const Leaderboard = () => {
         avatar: (p.full_name || "??").split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase(),
         xp: xpMap[p.user_id] || 0,
         isYou: false,
-        isFriend: true,
+        subject: "Student",
       }));
+    },
+    enabled: !!user,
+  });
+
+  const { data: earnedBadges } = useQuery({
+    queryKey: ["user-achievements-lb", user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data } = await supabase
+        .from("user_achievements")
+        .select("achievement_id, achievements(name, icon)")
+        .eq("user_id", user.id)
+        .limit(4);
+      return data ?? [];
     },
     enabled: !!user,
   });
@@ -65,76 +94,188 @@ const Leaderboard = () => {
   const myName = myProfile?.full_name || "You";
   const myInitials = myName.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
   const xp = myXp ?? 0;
+  const level = Math.floor(xp / 200) + 1;
+  const xpInLevel = xp % 200;
 
-  // Combine: you + friends
   const allUsers = [
-    { name: myName, avatar: myInitials, xp, isYou: true, isFriend: false },
+    { name: myName, avatar: myInitials, xp, isYou: true, subject: "Student" },
     ...(friendUsers ?? []),
   ]
     .sort((a, b) => b.xp - a.xp)
     .map((u, i) => ({ ...u, rank: i + 1 }));
 
-  const top3 = allUsers.slice(0, 3);
+  const myRank = allUsers.find((u) => u.isYou)?.rank ?? 0;
 
   return (
-    <div className="p-6 md:p-8 max-w-3xl mx-auto space-y-6">
-      <div className="flex items-center gap-3">
-        <Trophy className="h-6 w-6 text-accent" />
-        <div>
-          <h1 className="text-2xl font-bold text-foreground tracking-tight">Leaderboard</h1>
-          <p className="text-muted-foreground text-sm">
-            {(friendUsers ?? []).length > 0 ? "Rankings among friends" : "Add friends to compete!"}
-          </p>
-        </div>
+    <div className="p-6 md:p-8 max-w-6xl mx-auto space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">Social & Achievements</h1>
+        <p className="text-muted-foreground text-sm mt-1">Compete with friends, earn badges, and climb the global ranks.</p>
       </div>
 
-      {/* Top 3 podium */}
-      {top3.length >= 3 && (
-        <div className="flex items-end justify-center gap-4 py-6">
-          {[top3[1], top3[0], top3[2]].filter(Boolean).map((u, i) => {
-            const heights = ["h-24", "h-32", "h-20"];
-            const medals = ["🥈", "🥇", "🥉"];
-            return (
-              <div key={`${u.name}-${i}`} className="flex flex-col items-center gap-2">
-                <span className="text-2xl">{medals[i]}</span>
-                <div className={`h-10 w-10 rounded-full flex items-center justify-center text-sm font-bold ${u.isYou ? "bg-accent text-accent-foreground" : "bg-navy text-highlight"}`}>
-                  {u.avatar}
-                </div>
-                <span className="text-xs font-semibold text-foreground">{u.isYou ? "You" : u.name}</span>
-                <span className="text-xs text-accent font-bold">{u.xp.toLocaleString()} XP</span>
-                <div className={`${heights[i]} w-20 rounded-t-lg bg-secondary`} />
+      <div className="grid lg:grid-cols-3 gap-6">
+        {/* Left column: Leaderboard + Badges */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Leaderboard */}
+          <div className="bg-card border border-border rounded-xl p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-foreground">Weekly Leaderboard</h3>
+                <p className="text-xs text-muted-foreground">Global Season 14 • Ends in 2d 14h</p>
               </div>
-            );
-          })}
-        </div>
-      )}
+              <div className="flex items-center gap-1 bg-muted rounded-full p-0.5">
+                <button
+                  onClick={() => setTab("global")}
+                  className={`px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                    tab === "global" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
+                  }`}
+                >
+                  Global
+                </button>
+                <button
+                  onClick={() => setTab("friends")}
+                  className={`px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                    tab === "friends" ? "bg-accent text-accent-foreground shadow-sm" : "text-muted-foreground"
+                  }`}
+                >
+                  Friends
+                </button>
+              </div>
+            </div>
 
-      {/* Full list */}
-      <div className="space-y-2">
-        {allUsers.map((u) => (
-          <div
-            key={`${u.name}-${u.rank}`}
-            className={`flex items-center gap-4 px-4 py-3 rounded-xl ${
-              u.isYou ? "bg-secondary border border-accent/20" : "bg-card border border-border"
-            }`}
-          >
-            <span className="text-sm font-bold text-muted-foreground w-6 text-center">{u.rank}</span>
-            <div className={`h-9 w-9 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${u.isYou ? "bg-accent text-accent-foreground" : "bg-navy text-highlight"}`}>
-              {u.avatar}
+            {/* Table header */}
+            <div className="grid grid-cols-[60px_1fr_1fr_100px] gap-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 pb-2 border-b border-border">
+              <span>Rank</span>
+              <span>Student</span>
+              <span>Subject Mastery</span>
+              <span className="text-right">XP Points</span>
             </div>
-            <div className="flex-1 min-w-0">
-              <span className={`text-sm font-medium ${u.isYou ? "text-navy" : "text-foreground"}`}>{u.isYou ? "You" : u.name}</span>
+
+            {/* Rows */}
+            <div className="space-y-1">
+              {allUsers.map((u) => (
+                <div
+                  key={`${u.name}-${u.rank}`}
+                  className={`grid grid-cols-[60px_1fr_1fr_100px] gap-4 items-center px-2 py-3 rounded-lg ${
+                    u.isYou ? "bg-accent/5 border border-accent/20" : "hover:bg-muted/50"
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    {u.rank <= 3 && <span className="text-base">{u.rank === 1 ? "🥇" : u.rank === 2 ? "🥈" : "🥉"}</span>}
+                    <span className="text-sm font-bold text-muted-foreground">{u.rank}</span>
+                  </span>
+                  <div className="flex items-center gap-3">
+                    <div className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold ${
+                      u.isYou ? "bg-accent text-accent-foreground" : "bg-secondary text-[hsl(var(--navy))]"
+                    }`}>
+                      {u.avatar}
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium text-foreground">{u.isYou ? "You" : u.name}</span>
+                      {u.isYou && <span className="text-[10px] text-muted-foreground ml-1">(You)</span>}
+                    </div>
+                  </div>
+                  <span className="text-xs text-muted-foreground">{u.subject}</span>
+                  <span className="text-sm font-bold text-accent text-right">{u.xp.toLocaleString()} XP</span>
+                </div>
+              ))}
             </div>
-            <span className="text-sm font-bold text-accent">{u.xp.toLocaleString()} XP</span>
           </div>
-        ))}
-      </div>
 
-      {allUsers.length <= 1 && (
-        <div className="text-center py-8">
-          <p className="text-sm text-muted-foreground">Add friends to see them on the leaderboard!</p>
+          {/* Badges */}
+          <div className="bg-card border border-border rounded-xl p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-foreground">Your Badges</h3>
+              <Link to="/achievements" className="text-xs text-accent hover:underline">View All ({earnedBadges?.length ?? 0})</Link>
+            </div>
+            <div className="grid grid-cols-4 gap-4">
+              {(earnedBadges ?? []).slice(0, 4).map((b: any, i) => (
+                <div key={i} className="flex flex-col items-center gap-2 p-4 rounded-xl border border-accent/20 bg-accent/5">
+                  <div className="h-12 w-12 rounded-full bg-secondary flex items-center justify-center">
+                    <Trophy className="h-6 w-6 text-accent" />
+                  </div>
+                  <span className="text-xs font-medium text-foreground text-center">{(b.achievements as any)?.name ?? "Badge"}</span>
+                </div>
+              ))}
+              {(earnedBadges?.length ?? 0) < 4 && Array.from({ length: 4 - (earnedBadges?.length ?? 0) }).map((_, i) => (
+                <div key={`locked-${i}`} className="flex flex-col items-center gap-2 p-4 rounded-xl border border-border opacity-40">
+                  <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
+                    <Trophy className="h-6 w-6 text-muted-foreground" />
+                  </div>
+                  <span className="text-xs text-muted-foreground">Locked</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Bottom stats */}
+            <div className="flex items-center justify-center gap-6 pt-2 border-t border-border">
+              <div className="flex items-center gap-2 text-sm">
+                <Trophy className="h-4 w-4 text-muted-foreground" />
+                <span className="font-medium text-foreground">Rank #{myRank}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Zap className="h-4 w-4 text-accent" />
+                <span className="font-medium text-foreground">{xp.toLocaleString()} XP</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Flame className="h-4 w-4 text-destructive" />
+                <span className="font-medium text-foreground">{streak?.current_streak ?? 0} Days</span>
+              </div>
+            </div>
+          </div>
         </div>
-      )}
+
+        {/* Right sidebar */}
+        <div className="space-y-6">
+          {/* XP System card */}
+          <div className="bg-[hsl(var(--navy))] text-white rounded-xl p-5 space-y-3">
+            <div className="flex items-center justify-between">
+              <Zap className="h-5 w-5 text-[hsl(var(--highlight))]" />
+              <span className="text-[10px] font-bold text-[hsl(var(--highlight))] uppercase tracking-wider bg-white/10 px-2 py-0.5 rounded-full">Daily Goal</span>
+            </div>
+            <h3 className="text-lg font-bold">XP System</h3>
+            <p className="text-xs opacity-80">You're {200 - xpInLevel} XP away from level {level + 1}!</p>
+            <div className="h-2 bg-white/20 rounded-full overflow-hidden">
+              <div className="h-full bg-accent rounded-full" style={{ width: `${(xpInLevel / 200) * 100}%` }} />
+            </div>
+          </div>
+
+          {/* Active Streak */}
+          <div className="bg-card border border-border rounded-xl p-5 space-y-2">
+            <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Active Streak</div>
+            <div className="flex items-center gap-3">
+              <Flame className="h-6 w-6 text-destructive" />
+              <span className="text-2xl font-bold text-foreground">{streak?.current_streak ?? 0} Days</span>
+            </div>
+          </div>
+
+          {/* Friend Activity */}
+          <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+            <div className="flex items-center gap-2">
+              <Users className="h-4 w-4 text-muted-foreground" />
+              <h3 className="font-semibold text-foreground text-sm">Friend Activity</h3>
+            </div>
+            {(friendUsers?.length ?? 0) > 0 ? (
+              <div className="space-y-3">
+                {friendUsers?.slice(0, 3).map((f, i) => (
+                  <div key={i} className="flex items-start gap-3">
+                    <div className="h-7 w-7 rounded-full bg-secondary flex items-center justify-center text-[10px] font-bold text-[hsl(var(--navy))] flex-shrink-0 mt-0.5">
+                      {f.avatar}
+                    </div>
+                    <div>
+                      <p className="text-xs text-foreground"><span className="font-medium">{f.name}</span> earned {f.xp} XP</p>
+                      <p className="text-[10px] text-muted-foreground">Recently</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground">Add friends to see their activity here.</p>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
