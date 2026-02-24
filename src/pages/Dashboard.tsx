@@ -1,134 +1,178 @@
 import { Link } from "react-router-dom";
-import { BookOpen, MessageCircleQuestion, Gamepad2, Upload, BarChart3, Trophy, Flame, ArrowRight, TrendingUp, AlertTriangle, Zap, Lightbulb, Timer } from "lucide-react";
+import { BookOpen, MessageCircleQuestion, Gamepad2, Upload, BarChart3, Trophy, Flame, ArrowRight, TrendingUp, AlertTriangle, Zap, Lightbulb, Timer, Moon, FileText, Bot } from "lucide-react";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import DashboardTimer from "@/components/DashboardTimer";
-
-const quickActions = [
-  { icon: MessageCircleQuestion, label: "Ask a Doubt", desc: "Get instant AI help", to: "/doubts", color: "bg-accent/10 text-accent" },
-  { icon: Gamepad2, label: "Practice Quiz", desc: "Test your knowledge", to: "/quiz", color: "bg-secondary text-navy" },
-  { icon: BookOpen, label: "Continue Learning", desc: "Pick up where you left off", to: "/lessons", color: "bg-accent/10 text-accent" },
-  { icon: Upload, label: "Upload Material", desc: "Learn from your docs", to: "/materials", color: "bg-secondary text-navy" },
-  { icon: BarChart3, label: "View Progress", desc: "Track your mastery", to: "/progress", color: "bg-accent/10 text-accent" },
-];
 
 const Dashboard = () => {
   const { profile, streak, totalXp, studyTime, avgScore, continueLearning, weakTopics, greeting } = useDashboardData();
   const displayName = profile?.full_name?.split(" ")[0] || "there";
   const level = Math.floor(totalXp / 200) + 1;
+  const currentStreak = streak?.current_streak ?? 0;
+
+  // Generate streak calendar (last 7 days)
+  const streakDays = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (6 - i));
+    const dayNames = ["S", "M", "T", "W", "T", "F", "S"];
+    return {
+      label: dayNames[d.getDay()],
+      active: i >= 7 - currentStreak,
+    };
+  });
 
   return (
     <div className="p-6 md:p-8 space-y-8 max-w-6xl mx-auto">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">{greeting}, {displayName} 👋</h1>
-          <p className="text-muted-foreground mt-1 text-sm">Ready to continue your learning journey?</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">
+            Welcome back, {displayName} 👋
+          </h1>
+          <p className="text-muted-foreground mt-1 text-sm">Ready to crush your study goals today?</p>
         </div>
         <div className="flex items-center gap-3">
           <DashboardTimer />
-          <div className="hidden sm:flex items-center gap-2 bg-secondary px-4 py-2 rounded-xl">
-            <Flame className="h-4 w-4 text-destructive" />
-            <span className="text-sm font-bold text-navy">{streak?.current_streak ?? 0} day streak</span>
-          </div>
         </div>
       </div>
 
-      {/* Stats row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[
-          { value: totalXp.toLocaleString(), label: "Total XP", icon: Zap, accent: true },
-          { value: studyTime, label: "Study Time", icon: Timer },
-          { value: avgScore !== null ? `${avgScore}%` : "—", label: "Avg. Score", icon: TrendingUp },
-          { value: `Lv. ${level}`, label: "Level", icon: Trophy },
-        ].map((s) => (
-          <div key={s.label} className="bg-card border border-border rounded-xl p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <s.icon className={`h-4 w-4 ${s.accent ? "text-accent" : "text-muted-foreground"}`} />
-              <span className="text-xs text-muted-foreground">{s.label}</span>
-            </div>
-            <div className="text-2xl font-bold text-foreground">{s.value}</div>
+      {/* Two hero action cards */}
+      <div className="grid md:grid-cols-2 gap-4">
+        <Link
+          to="/materials"
+          className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-accent to-[hsl(var(--navy))] p-6 text-white group hover:shadow-lg transition-shadow"
+        >
+          <div className="relative z-10">
+            <h3 className="text-lg font-bold">New Document</h3>
+            <p className="text-sm opacity-80 mt-1">Upload a PDF or notes to start learning</p>
           </div>
-        ))}
+          <Upload className="absolute right-6 bottom-6 h-12 w-12 opacity-20 group-hover:opacity-30 transition-opacity" />
+        </Link>
+        <Link
+          to="/materials/tutor"
+          className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[hsl(var(--navy))] to-[hsl(var(--deep))] p-6 text-white group hover:shadow-lg transition-shadow"
+        >
+          <div className="relative z-10">
+            <h3 className="text-lg font-bold">AI Tutor Chat</h3>
+            <p className="text-sm opacity-80 mt-1">Ask anything about your course materials</p>
+          </div>
+          <Bot className="absolute right-6 bottom-6 h-12 w-12 opacity-20 group-hover:opacity-30 transition-opacity" />
+        </Link>
       </div>
 
-      {/* Quick actions */}
-      <div>
-        <h2 className="text-lg font-semibold text-foreground mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-          {quickActions.map((a) => (
-            <Link
-              key={a.label}
-              to={a.to}
-              className="group bg-card border border-border rounded-xl p-5 hover:border-accent/50 transition-colors"
-            >
-              <div className={`h-10 w-10 rounded-lg ${a.color} flex items-center justify-center mb-3`}>
-                <a.icon className="h-5 w-5" />
-              </div>
-              <div className="text-sm font-semibold text-foreground">{a.label}</div>
-              <div className="text-xs text-muted-foreground mt-1">{a.desc}</div>
-            </Link>
-          ))}
-        </div>
-      </div>
-
-      {/* Two-column: Continue + Stats */}
-      <div className="grid md:grid-cols-2 gap-6">
-        {/* Continue learning */}
+      {/* Middle row: Streak + Subject Mastery + Leaderboard */}
+      <div className="grid md:grid-cols-3 gap-6">
+        {/* Streak */}
         <div className="bg-card border border-border rounded-xl p-5 space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-foreground">Continue Learning</h3>
-            <Link to="/lessons" className="text-xs text-accent hover:underline flex items-center gap-1">
-              View all <ArrowRight className="h-3 w-3" />
-            </Link>
+            <div className="flex items-center gap-2">
+              <Flame className="h-5 w-5 text-destructive" />
+              <span className="font-semibold text-foreground">{currentStreak}-Day Streak</span>
+            </div>
           </div>
-          {continueLearning.length > 0 ? (
-            continueLearning.map((t: any) => (
+          <div className="text-4xl font-bold text-foreground">{currentStreak} <span className="text-base font-normal text-muted-foreground">Days</span></div>
+          <div className="flex gap-2">
+            {streakDays.map((d, i) => (
+              <div key={i} className="flex flex-col items-center gap-1.5">
+                <div className={`h-8 w-8 rounded-lg flex items-center justify-center text-xs font-bold ${
+                  d.active
+                    ? "bg-accent text-accent-foreground"
+                    : "bg-muted text-muted-foreground"
+                }`}>
+                  {d.label}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Subject Mastery */}
+        <div className="bg-card border border-border rounded-xl p-5 space-y-3">
+          <h3 className="font-semibold text-foreground text-sm">Subject Mastery</h3>
+          {weakTopics.length > 0 ? (
+            weakTopics.slice(0, 3).map((t: any) => (
+              <div key={t.topicId} className="space-y-1">
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">{t.topicTitle}</span>
+                  <span className="text-accent font-semibold">{t.mastery}%</span>
+                </div>
+                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                  <div className="h-full bg-accent rounded-full" style={{ width: `${t.mastery}%` }} />
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="text-sm text-muted-foreground py-2">Take quizzes to see mastery</div>
+          )}
+        </div>
+
+        {/* Leaderboard preview */}
+        <div className="bg-card border border-border rounded-xl p-5 space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold text-foreground text-sm">Leaderboard</h3>
+            <span className="text-[10px] font-bold text-accent bg-accent/10 px-2 py-0.5 rounded-full">Top 5%</span>
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-accent/5">
+              <div className="h-7 w-7 rounded-full bg-accent text-accent-foreground flex items-center justify-center text-xs font-bold">
+                {(displayName[0] ?? "Y").toUpperCase()}
+              </div>
+              <span className="flex-1 text-sm font-medium text-foreground">You ({displayName})</span>
+              <span className="text-xs font-bold text-accent">{totalXp.toLocaleString()} XP</span>
+            </div>
+          </div>
+          <Link to="/leaderboard" className="text-xs text-accent hover:underline">View all rankings →</Link>
+        </div>
+      </div>
+
+      {/* Recent Activity */}
+      <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="font-semibold text-foreground">Recent Activity</h3>
+          <Link to="/progress" className="text-xs text-accent hover:underline">View all history →</Link>
+        </div>
+        {continueLearning.length > 0 ? (
+          <div className="grid sm:grid-cols-3 gap-4">
+            {continueLearning.map((t: any) => (
               <Link
                 key={t.id}
                 to={`/lessons/${t.id}`}
-                className="flex items-center gap-3 rounded-lg hover:bg-muted/50 p-2 -mx-2 transition-colors"
+                className="flex items-center gap-3 rounded-lg hover:bg-muted/50 p-3 border border-border transition-colors"
               >
-                <div className="h-8 w-8 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0">
+                <div className="h-9 w-9 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0">
                   <BookOpen className="h-4 w-4 text-navy" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium text-foreground truncate">{t.title}</div>
-                  <div className="text-xs text-muted-foreground">{t.subject} · {t.done}/{t.total} lessons</div>
+                  <div className="text-xs text-muted-foreground">{t.subject} · {t.pct}%</div>
                 </div>
-                <span className="text-xs font-bold text-accent">{t.pct}%</span>
               </Link>
-            ))
-          ) : (
-            <div className="text-sm text-muted-foreground py-4 text-center">
-              Start a lesson to see your progress here
-            </div>
-          )}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-sm text-muted-foreground py-4 text-center">
+            Start a lesson to see your recent activity
+          </div>
+        )}
+      </div>
 
-        {/* Your Stats */}
-        <div className="bg-card border border-border rounded-xl p-5 space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-foreground">Your Stats</h3>
-            <Link to="/leaderboard" className="text-xs text-accent hover:underline flex items-center gap-1">
-              Leaderboard <ArrowRight className="h-3 w-3" />
-            </Link>
-          </div>
-          <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-secondary">
-            <span className="text-sm w-6 text-center">🏆</span>
-            <span className="flex-1 text-sm font-medium text-navy">{displayName} (You)</span>
-            <span className="text-sm font-bold text-accent">{totalXp.toLocaleString()} XP</span>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-muted/50 rounded-lg p-3 text-center">
-              <div className="text-lg font-bold text-foreground">{streak?.current_streak ?? 0}</div>
-              <div className="text-xs text-muted-foreground">Day Streak</div>
-            </div>
-            <div className="bg-muted/50 rounded-lg p-3 text-center">
-              <div className="text-lg font-bold text-foreground">{avgScore !== null ? `${avgScore}%` : "—"}</div>
-              <div className="text-xs text-muted-foreground">Avg. Score</div>
-            </div>
-          </div>
-        </div>
+      {/* Quick actions row */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        {[
+          { icon: MessageCircleQuestion, label: "Ask a Doubt", to: "/doubts" },
+          { icon: Gamepad2, label: "Practice Quiz", to: "/quiz" },
+          { icon: BookOpen, label: "Continue Learning", to: "/lessons" },
+          { icon: BarChart3, label: "View Progress", to: "/progress" },
+          { icon: Trophy, label: "Achievements", to: "/achievements" },
+        ].map((a) => (
+          <Link
+            key={a.label}
+            to={a.to}
+            className="group bg-card border border-border rounded-xl p-4 hover:border-accent/50 transition-colors text-center"
+          >
+            <a.icon className="h-5 w-5 text-accent mx-auto mb-2" />
+            <div className="text-xs font-semibold text-foreground">{a.label}</div>
+          </Link>
+        ))}
       </div>
 
       {/* Weak topics / recommendations */}
